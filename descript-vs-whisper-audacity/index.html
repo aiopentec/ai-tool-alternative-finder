@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Descript vs Audacity + OpenAI Whisper (April 04, 2026) — Free AI Alternative</title>
+  <meta name="description" content="Is Audacity + OpenAI Whisper a good free alternative to Descript? $12–$24/month → Free. Detailed comparison of pricing, features, and migration." />
+  <meta property="og:title" content="Descript vs Audacity + OpenAI Whisper (April 04, 2026) — Free AI Alternative" />
+  <meta property="og:description" content="Is Audacity + OpenAI Whisper a good free alternative to Descript? $12–$24/month → Free. Detailed comparison of pricing, features, and migration." />
+  <meta property="og:type" content="website" />
+  <link rel="canonical" href="https://aiopentec.github.io/ai-tool-alternative-finder/descript-vs-whisper-audacity/" />
+  
+<style>
+  :root {
+    --bg: #0D1117;
+    --surface: #161B22;
+    --border: #30363D;
+    --text: #E6EDF3;
+    --muted: #8B949E;
+    --accent: #58A6FF;
+    --green: #3FB950;
+    --yellow: #D29922;
+    --red: #F85149;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size: 15px; line-height: 1.6; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+  nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 0; }
+  nav .container { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; font-size: 15px; color: var(--text); }
+  nav .brand:hover { text-decoration: none; }
+  header { padding: 48px 0 32px; text-align: center; }
+  header h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; }
+  header p { color: var(--muted); font-size: 1.05rem; max-width: 600px; margin: 0 auto; }
+  .stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+  .stat { text-align: center; }
+  .stat .num { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+  .stat .lbl { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .filters { margin: 24px 0 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all .15s; }
+  .filter-btn:hover, .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding-bottom: 48px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: border-color .15s, transform .15s; display: flex; flex-direction: column; }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card-cat { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .card-tools { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .card-tools .tool { font-weight: 600; font-size: 14px; }
+  .card-tools .vs { color: var(--muted); font-size: 12px; }
+  .card-savings { font-size: 12px; color: var(--green); margin-bottom: 14px; }
+  .card a.btn { display: inline-block; background: var(--accent); color: #fff; padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-top: auto; text-align: center; }
+  .card a.btn:hover { background: #79b8ff; text-decoration: none; }
+  h2 { font-size: 1.4rem; margin: 32px 0 16px; }
+  h3 { font-size: 1.1rem; margin: 24px 0 10px; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; margin: 0 4px 4px 0; }
+  .badge-green { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); }
+  .badge-blue { background: rgba(88,166,255,.15); color: var(--accent); border: 1px solid rgba(88,166,255,.3); }
+  .badge-yellow { background: rgba(210,153,34,.15); color: var(--yellow); border: 1px solid rgba(210,153,34,.3); }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th { background: var(--surface); color: var(--muted); text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--border); }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .verdict-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin: 20px 0; }
+  .verdict-box h3 { margin: 0 0 8px; font-size: 1rem; }
+  .verdict-row { margin-bottom: 14px; }
+  .verdict-row:last-child { margin-bottom: 0; }
+  .verdict-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .verdict-switch .verdict-label { color: var(--green); }
+  .verdict-stay .verdict-label { color: var(--yellow); }
+  .hero-tools { display: flex; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin: 24px 0; flex-wrap: wrap; }
+  .hero-tool { flex: 1; min-width: 160px; }
+  .hero-tool .label { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .hero-tool .name { font-size: 1.2rem; font-weight: 700; }
+  .hero-tool .price { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .hero-vs { font-size: 1.4rem; font-weight: 700; color: var(--border); }
+  .diff-bar { margin: 8px 0; }
+  .diff-dots { font-size: 18px; letter-spacing: 4px; }
+  ul.diffs { padding-left: 20px; }
+  ul.diffs li { margin-bottom: 8px; }
+  .migration-box { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); padding: 20px; margin: 20px 0; font-size: 14px; }
+  .migration-box pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 12px; overflow-x: auto; font-size: 13px; white-space: pre-wrap; }
+  .related { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+  .related a { background: var(--surface); border: 1px solid var(--border); padding: 8px 14px; border-radius: 6px; font-size: 13px; }
+  .related a:hover { border-color: var(--accent); text-decoration: none; }
+  footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; font-size: 13px; color: var(--muted); }
+  footer a { color: var(--muted); }
+  .search-bar { width: 100%; max-width: 500px; margin: 16px auto 0; display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px 16px; font-size: 14px; }
+  .search-bar:focus { outline: none; border-color: var(--accent); }
+  @media (max-width: 600px) { header h1 { font-size: 1.5rem; } .hero-tools { flex-direction: column; } }
+</style>
+
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="../index.html" class="brand">🤖 AI Tool Alternative Finder</a>
+    <a href="../savings-calculator/index.html" style="font-size:13px;color:var(--muted)">💰 Savings Calculator</a>
+    <a href="../changelog/index.html" style="font-size:13px;color:var(--muted)">📋 Changelog</a>
+    <a href="../about/index.html" style="font-size:13px;color:var(--muted)">About</a>
+  </div>
+</nav>
+
+<div class="container" style="padding-top:24px">
+  <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+    <a href="../index.html">🤖 AI Tool Alternative Finder</a> / <a href="#">AI Voice & Audio</a> / Descript vs Audacity + OpenAI Whisper
+  </p>
+
+  <div style="font-size:12px;color:var(--muted);margin-bottom:8px">🎤 AI Voice & Audio</div>
+  <h1 style="font-size:1.8rem;margin-bottom:12px">Descript vs Audacity + OpenAI Whisper</h1>
+
+  <p style="color:var(--muted);margin-bottom:16px">Detailed comparison: pricing, features, setup, and which is right for you.</p>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+    <span class="badge badge-green">✅ Free Alternative: Free</span>
+    <span class="badge badge-blue">🤖 AI-Analyzed</span>
+    <span class="badge badge-yellow">🖥️ Setup: Easy</span>
+    <span class="badge badge-blue">📅 April 04, 2026</span>
+  </div>
+
+  <div class="hero-tools">
+    <div class="hero-tool">
+      <div class="label">Paid Tool</div>
+      <div class="name">Descript</div>
+      <div class="price">$12–$24/month</div>
+      <a href="https://descript.com" target="_blank" rel="noopener" style="font-size:12px;color:var(--muted)">Visit →</a>
+    </div>
+    <div class="hero-vs">VS</div>
+    <div class="hero-tool">
+      <div class="label">Free Alternative ✅</div>
+      <div class="name">Audacity + OpenAI Whisper</div>
+      <div class="price">Free</div>
+      <a href="https://www.audacityteam.org" target="_blank" rel="noopener" style="font-size:12px;color:var(--muted)">Visit →</a>
+    </div>
+  </div>
+
+  <div class="verdict-box">
+    <h3>🤖 AI Verdict</h3>
+    <div class="verdict-row verdict-switch">
+      <div class="verdict-label">✅ Switch to Audacity + OpenAI Whisper if</div>
+      <div>Audacity handles professional audio editing while OpenAI Whisper provides state-of-the-art transcription locally — covering Descript's two core features at zero cost.</div>
+    </div>
+    <div class="verdict-row verdict-stay">
+      <div class="verdict-label">⚠️ Stay with Descript if</div>
+      <div>Descript's killer feature is its text-based video editor — you edit audio and video by editing a transcript, including overdub (AI voice replacement). This workflow has no clean free equivalent.</div>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+      <strong>🖥️ Setup Difficulty:</strong> Easy
+      <div class="diff-bar"><span class="diff-dots" style="color:var(--accent)">●●○○○</span></div>
+      ⏱️ Setup time: <strong>~~10 mins</strong> &nbsp;·&nbsp; 🐳 Method: <strong>Desktop app + pip</strong>
+    </div>
+  </div>
+
+  <h2>Descript vs Audacity + OpenAI Whisper</h2>
+
+  <h3>Overview</h3>
+  <p>Descript combines AI transcription, audio/video editing, and overdub (voice cloning) in a text-based editor for $12–$24/month. Audacity is the free industry-standard audio editor; OpenAI Whisper is a free, highly accurate local transcription model — together they replace Descript's audio workflow.</p>
+
+  <h3>Key Differences</h3>
+  <ul class="diffs"><li>Cost: Descript is $12–$24/month; Audacity + Whisper are free</li><li>Text-based editing: Descript's edit-by-transcript workflow is unique; Audacity is waveform-based</li><li>Overdub: Descript's AI voice replacement has no direct free equivalent</li><li>Video editing: Descript handles video; Audacity is audio-only</li><li>Transcription quality: Whisper large-v3 matches or exceeds Descript's transcription accuracy</li></ul>
+
+  <h3>Pricing Comparison</h3>
+  <table>
+    <thead><tr><th>Aspect</th><th>Descript</th><th>Audacity + Whisper</th></tr></thead>
+    <tbody><tr><td>Pricing</td><td>$12–$24/month</td><td>Free</td></tr><tr><td>Transcription</td><td>✅ AI-powered</td><td>✅ Whisper (local)</td></tr><tr><td>Text-based editing</td><td>✅</td><td>❌</td></tr><tr><td>Video editing</td><td>✅</td><td>❌</td></tr><tr><td>Overdub (AI voice)</td><td>✅</td><td>❌</td></tr><tr><td>Noise removal</td><td>✅ AI</td><td>✅ Plugin</td></tr></tbody>
+  </table>
+
+  <h3>Migration Path</h3>
+  <div class="migration-box">
+    <strong>How to switch from Descript to Audacity + OpenAI Whisper:</strong>
+    <pre>Download Audacity (audacityteam.org). For transcription: pip install openai-whisper. Run: whisper audio.mp3 --model large-v3 --output_format txt. For faster local transcription, consider faster-whisper instead.</pre>
+  </div>
+
+  
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin:20px 0;">
+  📦 <strong>Audacity + OpenAI Whisper on GitHub</strong><br/>
+  <a href="https://github.com/openai/whisper" target="_blank" rel="noopener">github.com/openai/whisper</a><br/>
+  <span style="color:var(--muted);font-size:13px">Open Source &nbsp;·&nbsp; Free to use</span>
+</div>
+
+  <p style="margin:20px 0;font-size:13px;color:var(--muted)">
+    <em>Data sourced April 04, 2026. Pricing and features change — verify at <a href="https://descript.com" target="_blank">Descript</a> and <a href="https://www.audacityteam.org" target="_blank">Audacity + OpenAI Whisper</a> before making decisions.</em>
+  </p>
+
+  <h3>🔗 Related Comparisons</h3>
+  <div class="related"><a href="../otter-ai-vs-whisper/index.html">Otter.ai vs OpenAI Whisper (local)</a><a href="../adobe-podcast-vs-whisper/index.html">Adobe Podcast (Enhance) vs DeepFilterNet + Whisper</a><a href="../elevenlabs-vs-coqui-tts/index.html">ElevenLabs vs Coqui TTS</a></div>
+
+  <p style="margin:20px 0">
+    <a href="../index.html" style="color:var(--muted);font-size:13px">← View All Comparisons</a>
+  </p>
+</div>
+
+<footer>
+  <div class="container">
+    <p><strong>AI Tool Alternative Finder</strong> &nbsp;·&nbsp; Hosted on <a href="https://pages.github.com">GitHub Pages</a> &nbsp;·&nbsp;
+    <a href="about/index.html">About</a> &nbsp;·&nbsp;
+    <a href="privacy/index.html">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="contact/index.html">Contact</a> &nbsp;·&nbsp;
+    <a href="changelog/index.html">Changelog</a> &nbsp;·&nbsp;
+    <a href="stats/index.html">Stats</a></p>
+    <p style="margin-top:8px">Updated April 04, 2026 &nbsp;·&nbsp; $0/month to operate &nbsp;·&nbsp; Content for informational purposes only</p>
+  </div>
+</footer>
+<script>
+  // Filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const cat = btn.dataset.cat;
+      document.querySelectorAll('.card').forEach(card => {
+        card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+      });
+    });
+  });
+  // Search
+  const searchBar = document.querySelector('.search-bar');
+  if (searchBar) {
+    searchBar.addEventListener('input', () => {
+      const q = searchBar.value.toLowerCase();
+      document.querySelectorAll('.card').forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+  }
+</script>
+</body>
+</html>

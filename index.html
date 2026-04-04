@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Tool Alternative Finder</title>
+  <meta name="description" content="Discover free and cheaper alternatives to popular paid AI tools — with detailed comparisons. Save hundreds per year." />
+  <meta property="og:title" content="AI Tool Alternative Finder" />
+  <meta property="og:description" content="Discover free and cheaper alternatives to popular paid AI tools — with detailed comparisons. Save hundreds per year." />
+  <meta property="og:type" content="website" />
+  
+  
+<style>
+  :root {
+    --bg: #0D1117;
+    --surface: #161B22;
+    --border: #30363D;
+    --text: #E6EDF3;
+    --muted: #8B949E;
+    --accent: #58A6FF;
+    --green: #3FB950;
+    --yellow: #D29922;
+    --red: #F85149;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size: 15px; line-height: 1.6; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+  nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 0; }
+  nav .container { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; font-size: 15px; color: var(--text); }
+  nav .brand:hover { text-decoration: none; }
+  header { padding: 48px 0 32px; text-align: center; }
+  header h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; }
+  header p { color: var(--muted); font-size: 1.05rem; max-width: 600px; margin: 0 auto; }
+  .stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+  .stat { text-align: center; }
+  .stat .num { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+  .stat .lbl { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .filters { margin: 24px 0 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all .15s; }
+  .filter-btn:hover, .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding-bottom: 48px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: border-color .15s, transform .15s; display: flex; flex-direction: column; }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card-cat { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .card-tools { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .card-tools .tool { font-weight: 600; font-size: 14px; }
+  .card-tools .vs { color: var(--muted); font-size: 12px; }
+  .card-savings { font-size: 12px; color: var(--green); margin-bottom: 14px; }
+  .card a.btn { display: inline-block; background: var(--accent); color: #fff; padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-top: auto; text-align: center; }
+  .card a.btn:hover { background: #79b8ff; text-decoration: none; }
+  h2 { font-size: 1.4rem; margin: 32px 0 16px; }
+  h3 { font-size: 1.1rem; margin: 24px 0 10px; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; margin: 0 4px 4px 0; }
+  .badge-green { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); }
+  .badge-blue { background: rgba(88,166,255,.15); color: var(--accent); border: 1px solid rgba(88,166,255,.3); }
+  .badge-yellow { background: rgba(210,153,34,.15); color: var(--yellow); border: 1px solid rgba(210,153,34,.3); }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th { background: var(--surface); color: var(--muted); text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--border); }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .verdict-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin: 20px 0; }
+  .verdict-box h3 { margin: 0 0 8px; font-size: 1rem; }
+  .verdict-row { margin-bottom: 14px; }
+  .verdict-row:last-child { margin-bottom: 0; }
+  .verdict-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .verdict-switch .verdict-label { color: var(--green); }
+  .verdict-stay .verdict-label { color: var(--yellow); }
+  .hero-tools { display: flex; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin: 24px 0; flex-wrap: wrap; }
+  .hero-tool { flex: 1; min-width: 160px; }
+  .hero-tool .label { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .hero-tool .name { font-size: 1.2rem; font-weight: 700; }
+  .hero-tool .price { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .hero-vs { font-size: 1.4rem; font-weight: 700; color: var(--border); }
+  .diff-bar { margin: 8px 0; }
+  .diff-dots { font-size: 18px; letter-spacing: 4px; }
+  ul.diffs { padding-left: 20px; }
+  ul.diffs li { margin-bottom: 8px; }
+  .migration-box { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); padding: 20px; margin: 20px 0; font-size: 14px; }
+  .migration-box pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 12px; overflow-x: auto; font-size: 13px; white-space: pre-wrap; }
+  .related { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+  .related a { background: var(--surface); border: 1px solid var(--border); padding: 8px 14px; border-radius: 6px; font-size: 13px; }
+  .related a:hover { border-color: var(--accent); text-decoration: none; }
+  footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; font-size: 13px; color: var(--muted); }
+  footer a { color: var(--muted); }
+  .search-bar { width: 100%; max-width: 500px; margin: 16px auto 0; display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px 16px; font-size: 14px; }
+  .search-bar:focus { outline: none; border-color: var(--accent); }
+  @media (max-width: 600px) { header h1 { font-size: 1.5rem; } .hero-tools { flex-direction: column; } }
+</style>
+
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="index.html" class="brand">🤖 AI Tool Alternative Finder</a>
+    <a href="savings-calculator/index.html" style="font-size:13px;color:var(--muted)">💰 Savings Calculator</a>
+    <a href="changelog/index.html" style="font-size:13px;color:var(--muted)">📋 Changelog</a>
+    <a href="about/index.html" style="font-size:13px;color:var(--muted)">About</a>
+  </div>
+</nav>
+
+<header>
+  <div class="container">
+    <h1>🤖 AI Tool Alternative Finder</h1>
+    <p>Discover free and cheaper alternatives to popular paid AI tools — with detailed comparisons. Save hundreds per year.</p>
+    <div class="stats">
+      <div class="stat"><div class="num">32</div><div class="lbl">Comparisons</div></div>
+      <div class="stat"><div class="num">6</div><div class="lbl">Categories</div></div>
+      <div class="stat"><div class="num">$0</div><div class="lbl">Cost to Run</div></div>
+      <div class="stat"><div class="num">Daily</div><div class="lbl">Auto-Updated</div></div>
+    </div>
+    <input type="text" class="search-bar" placeholder="Search AI tools (e.g. ChatGPT, Midjourney, Copilot)..." />
+  </div>
+</header>
+
+<div class="container">
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+    <strong>💰 AI Tool Savings Calculator</strong>
+    <p style="color:var(--muted);font-size:13px;margin-top:6px">Enter your team size → see exactly how much you save switching to free AI alternatives</p>
+    <a href="savings-calculator/index.html" style="display:inline-block;margin-top:12px;background:var(--accent);color:#fff;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;">Calculate My Savings →</a>
+  </div>
+
+  <div class="filters"><button class="filter-btn active" data-cat="all">All</button><button class="filter-btn" data-cat="AI APIs & Infrastructure">💬 AI APIs & Infrastructure (6)</button><button class="filter-btn" data-cat="AI Coding">💻 AI Coding (5)</button><button class="filter-btn" data-cat="AI Image Generation">🎨 AI Image Generation (5)</button><button class="filter-btn" data-cat="AI Video">📹 AI Video (3)</button><button class="filter-btn" data-cat="AI Voice & Audio">🎤 AI Voice & Audio (5)</button><button class="filter-btn" data-cat="AI Writing & Chat">✍️ AI Writing & Chat (8)</button></div>
+  <div class="grid">
+<div class="card" data-cat="AI Writing & Chat">
+  <div class="card-cat">✍️ AI Writing & Chat</div>
+  <div class="card-tools">
+    <span class="tool">ChatGPT Plus</span>
+    <span class="vs">VS</span>
+    <span class="tool">OpenRouter</span>
+  </div>
+  <div class="card-savings">💰 $20/month → Free tier available</div>
+  <a href="chatgpt-plus-vs-openrouter/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Writing & Chat">
+  <div class="card-cat">✍️ AI Writing & Chat</div>
+  <div class="card-tools">
+    <span class="tool">ChatGPT Plus</span>
+    <span class="vs">VS</span>
+    <span class="tool">Mistral (Le Chat)</span>
+  </div>
+  <div class="card-savings">💰 $20/month → Free</div>
+  <a href="chatgpt-plus-vs-mistral-free/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Writing & Chat">
+  <div class="card-cat">✍️ AI Writing & Chat</div>
+  <div class="card-tools">
+    <span class="tool">Jasper AI</span>
+    <span class="vs">VS</span>
+    <span class="tool">Open WebUI + Llama 3</span>
+  </div>
+  <div class="card-savings">💰 $39–$99/month → Free</div>
+  <a href="jasper-ai-vs-openwebui/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Writing & Chat">
+  <div class="card-cat">✍️ AI Writing & Chat</div>
+  <div class="card-tools">
+    <span class="tool">Copy.ai</span>
+    <span class="vs">VS</span>
+    <span class="tool">Open WebUI + Llama 3</span>
+  </div>
+  <div class="card-savings">💰 $36–$186/month → Free</div>
+  <a href="copy-ai-vs-openwebui/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Writing & Chat">
+  <div class="card-cat">✍️ AI Writing & Chat</div>
+  <div class="card-tools">
+    <span class="tool">Grammarly Premium</span>
+    <span class="vs">VS</span>
+    <span class="tool">LanguageTool</span>
+  </div>
+  <div class="card-savings">💰 $12–$15/month → Free</div>
+  <a href="grammarly-premium-vs-languagetool/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Writing & Chat">
+  <div class="card-cat">✍️ AI Writing & Chat</div>
+  <div class="card-tools">
+    <span class="tool">Notion AI</span>
+    <span class="vs">VS</span>
+    <span class="tool">Obsidian + Smart Composer</span>
+  </div>
+  <div class="card-savings">💰 $16–$30/user/month → Free</div>
+  <a href="notion-ai-vs-obsidian/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Writing & Chat">
+  <div class="card-cat">✍️ AI Writing & Chat</div>
+  <div class="card-tools">
+    <span class="tool">Writesonic</span>
+    <span class="vs">VS</span>
+    <span class="tool">Open WebUI + Mistral</span>
+  </div>
+  <div class="card-savings">💰 $16–$79/month → Free</div>
+  <a href="writesonic-vs-free-alternatives/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Writing & Chat">
+  <div class="card-cat">✍️ AI Writing & Chat</div>
+  <div class="card-tools">
+    <span class="tool">Perplexity Pro</span>
+    <span class="vs">VS</span>
+    <span class="tool">Phind</span>
+  </div>
+  <div class="card-savings">💰 $20/month → Free</div>
+  <a href="perplexity-pro-vs-phind/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Image Generation">
+  <div class="card-cat">🎨 AI Image Generation</div>
+  <div class="card-tools">
+    <span class="tool">Midjourney</span>
+    <span class="vs">VS</span>
+    <span class="tool">Stable Diffusion (ComfyUI)</span>
+  </div>
+  <div class="card-savings">💰 $10–$60/month → Free</div>
+  <a href="midjourney-vs-stable-diffusion/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Image Generation">
+  <div class="card-cat">🎨 AI Image Generation</div>
+  <div class="card-tools">
+    <span class="tool">DALL-E 3 (via ChatGPT Plus)</span>
+    <span class="vs">VS</span>
+    <span class="tool">Stable Diffusion (Automatic1111)</span>
+  </div>
+  <div class="card-savings">💰 $20/month → Free</div>
+  <a href="dalle3-vs-stable-diffusion/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Image Generation">
+  <div class="card-cat">🎨 AI Image Generation</div>
+  <div class="card-tools">
+    <span class="tool">Adobe Firefly</span>
+    <span class="vs">VS</span>
+    <span class="tool">Stable Diffusion (ComfyUI)</span>
+  </div>
+  <div class="card-savings">💰 $4.99–$54.99/month → Free</div>
+  <a href="adobe-firefly-vs-stable-diffusion/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Image Generation">
+  <div class="card-cat">🎨 AI Image Generation</div>
+  <div class="card-tools">
+    <span class="tool">Canva Pro + AI</span>
+    <span class="vs">VS</span>
+    <span class="tool">Stable Diffusion + GIMP</span>
+  </div>
+  <div class="card-savings">💰 $14.99–$55/month → Free</div>
+  <a href="canva-ai-vs-stable-diffusion/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Image Generation">
+  <div class="card-cat">🎨 AI Image Generation</div>
+  <div class="card-tools">
+    <span class="tool">Runway ML</span>
+    <span class="vs">VS</span>
+    <span class="tool">ComfyUI + AnimateDiff</span>
+  </div>
+  <div class="card-savings">💰 $15–$95/month → Free</div>
+  <a href="runway-ml-vs-comfyui-video/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Coding">
+  <div class="card-cat">💻 AI Coding</div>
+  <div class="card-tools">
+    <span class="tool">GitHub Copilot</span>
+    <span class="vs">VS</span>
+    <span class="tool">Codeium</span>
+  </div>
+  <div class="card-savings">💰 $10–$19/month → Free</div>
+  <a href="github-copilot-vs-codeium/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Coding">
+  <div class="card-cat">💻 AI Coding</div>
+  <div class="card-tools">
+    <span class="tool">GitHub Copilot</span>
+    <span class="vs">VS</span>
+    <span class="tool">Continue.dev + Ollama</span>
+  </div>
+  <div class="card-savings">💰 $10–$19/month → Free</div>
+  <a href="github-copilot-vs-continue-dev/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Coding">
+  <div class="card-cat">💻 AI Coding</div>
+  <div class="card-tools">
+    <span class="tool">Cursor AI</span>
+    <span class="vs">VS</span>
+    <span class="tool">Continue.dev + VS Code</span>
+  </div>
+  <div class="card-savings">💰 $20/month → Free</div>
+  <a href="cursor-ai-vs-continue-dev/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Coding">
+  <div class="card-cat">💻 AI Coding</div>
+  <div class="card-tools">
+    <span class="tool">Tabnine Pro</span>
+    <span class="vs">VS</span>
+    <span class="tool">Codeium</span>
+  </div>
+  <div class="card-savings">💰 $12/month → Free</div>
+  <a href="tabnine-pro-vs-codeium/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Coding">
+  <div class="card-cat">💻 AI Coding</div>
+  <div class="card-tools">
+    <span class="tool">Replit AI (Core)</span>
+    <span class="vs">VS</span>
+    <span class="tool">GitHub Codespaces + Continue.dev</span>
+  </div>
+  <div class="card-savings">💰 $20/month → Free (within limits)</div>
+  <a href="replit-ai-vs-free-alternatives/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Voice & Audio">
+  <div class="card-cat">🎤 AI Voice & Audio</div>
+  <div class="card-tools">
+    <span class="tool">ElevenLabs</span>
+    <span class="vs">VS</span>
+    <span class="tool">Coqui TTS</span>
+  </div>
+  <div class="card-savings">💰 $5–$99/month → Free</div>
+  <a href="elevenlabs-vs-coqui-tts/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Voice & Audio">
+  <div class="card-cat">🎤 AI Voice & Audio</div>
+  <div class="card-tools">
+    <span class="tool">Murf AI</span>
+    <span class="vs">VS</span>
+    <span class="tool">Coqui TTS / Piper TTS</span>
+  </div>
+  <div class="card-savings">💰 $19–$75/month → Free</div>
+  <a href="murf-ai-vs-coqui-tts/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Voice & Audio">
+  <div class="card-cat">🎤 AI Voice & Audio</div>
+  <div class="card-tools">
+    <span class="tool">Descript</span>
+    <span class="vs">VS</span>
+    <span class="tool">Audacity + OpenAI Whisper</span>
+  </div>
+  <div class="card-savings">💰 $12–$24/month → Free</div>
+  <a href="descript-vs-whisper-audacity/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Voice & Audio">
+  <div class="card-cat">🎤 AI Voice & Audio</div>
+  <div class="card-tools">
+    <span class="tool">Otter.ai</span>
+    <span class="vs">VS</span>
+    <span class="tool">OpenAI Whisper (local)</span>
+  </div>
+  <div class="card-savings">💰 $8.33–$20/month → Free</div>
+  <a href="otter-ai-vs-whisper/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Voice & Audio">
+  <div class="card-cat">🎤 AI Voice & Audio</div>
+  <div class="card-tools">
+    <span class="tool">Adobe Podcast (Enhance)</span>
+    <span class="vs">VS</span>
+    <span class="tool">DeepFilterNet + Whisper</span>
+  </div>
+  <div class="card-savings">💰 $4.99+/month → Free</div>
+  <a href="adobe-podcast-vs-whisper/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Video">
+  <div class="card-cat">📹 AI Video</div>
+  <div class="card-tools">
+    <span class="tool">Synthesia</span>
+    <span class="vs">VS</span>
+    <span class="tool">SadTalker / DID Free Tier</span>
+  </div>
+  <div class="card-savings">💰 $18–$67/month → Free</div>
+  <a href="synthesia-vs-open-source-avatar/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Video">
+  <div class="card-cat">📹 AI Video</div>
+  <div class="card-tools">
+    <span class="tool">Pictory AI</span>
+    <span class="vs">VS</span>
+    <span class="tool">Kdenlive + Whisper</span>
+  </div>
+  <div class="card-savings">💰 $19–$99/month → Free</div>
+  <a href="pictory-vs-kdenlive/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI Video">
+  <div class="card-cat">📹 AI Video</div>
+  <div class="card-tools">
+    <span class="tool">InVideo AI</span>
+    <span class="vs">VS</span>
+    <span class="tool">Kdenlive + Stable Diffusion</span>
+  </div>
+  <div class="card-savings">💰 $20–$48/month → Free</div>
+  <a href="invideo-ai-vs-kdenlive/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI APIs & Infrastructure">
+  <div class="card-cat">💬 AI APIs & Infrastructure</div>
+  <div class="card-tools">
+    <span class="tool">OpenAI API</span>
+    <span class="vs">VS</span>
+    <span class="tool">Ollama</span>
+  </div>
+  <div class="card-savings">💰 API costs → $0</div>
+  <a href="openai-api-vs-ollama/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI APIs & Infrastructure">
+  <div class="card-cat">💬 AI APIs & Infrastructure</div>
+  <div class="card-tools">
+    <span class="tool">OpenAI API</span>
+    <span class="vs">VS</span>
+    <span class="tool">Groq API</span>
+  </div>
+  <div class="card-savings">💰 API costs → Free tier</div>
+  <a href="openai-api-vs-groq/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI APIs & Infrastructure">
+  <div class="card-cat">💬 AI APIs & Infrastructure</div>
+  <div class="card-tools">
+    <span class="tool">OpenAI API</span>
+    <span class="vs">VS</span>
+    <span class="tool">Together AI</span>
+  </div>
+  <div class="card-savings">💰 Up to 15x cheaper per token</div>
+  <a href="openai-api-vs-together-ai/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI APIs & Infrastructure">
+  <div class="card-cat">💬 AI APIs & Infrastructure</div>
+  <div class="card-tools">
+    <span class="tool">Anthropic Claude API</span>
+    <span class="vs">VS</span>
+    <span class="tool">Ollama + Llama 3.1</span>
+  </div>
+  <div class="card-savings">💰 API costs → $0</div>
+  <a href="claude-api-vs-ollama/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI APIs & Infrastructure">
+  <div class="card-cat">💬 AI APIs & Infrastructure</div>
+  <div class="card-tools">
+    <span class="tool">OpenAI API</span>
+    <span class="vs">VS</span>
+    <span class="tool">Fireworks AI</span>
+  </div>
+  <div class="card-savings">💰 Up to 10x cheaper per token</div>
+  <a href="openai-api-vs-fireworks-ai/index.html" class="btn">Compare Now →</a>
+</div>
+<div class="card" data-cat="AI APIs & Infrastructure">
+  <div class="card-cat">💬 AI APIs & Infrastructure</div>
+  <div class="card-tools">
+    <span class="tool">ChatGPT Plus</span>
+    <span class="vs">VS</span>
+    <span class="tool">Google Gemini (Free tier)</span>
+  </div>
+  <div class="card-savings">💰 $20/month → Free</div>
+  <a href="chatgpt-plus-vs-google-gemini-free/index.html" class="btn">Compare Now →</a>
+</div></div>
+</div>
+
+<footer>
+  <div class="container">
+    <p><strong>AI Tool Alternative Finder</strong> &nbsp;·&nbsp; Hosted on <a href="https://pages.github.com">GitHub Pages</a> &nbsp;·&nbsp;
+    <a href="about/index.html">About</a> &nbsp;·&nbsp;
+    <a href="privacy/index.html">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="contact/index.html">Contact</a> &nbsp;·&nbsp;
+    <a href="changelog/index.html">Changelog</a> &nbsp;·&nbsp;
+    <a href="stats/index.html">Stats</a></p>
+    <p style="margin-top:8px">Updated April 04, 2026 &nbsp;·&nbsp; $0/month to operate &nbsp;·&nbsp; Content for informational purposes only</p>
+  </div>
+</footer>
+<script>
+  // Filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const cat = btn.dataset.cat;
+      document.querySelectorAll('.card').forEach(card => {
+        card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+      });
+    });
+  });
+  // Search
+  const searchBar = document.querySelector('.search-bar');
+  if (searchBar) {
+    searchBar.addEventListener('input', () => {
+      const q = searchBar.value.toLowerCase();
+      document.querySelectorAll('.card').forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+  }
+</script>
+</body>
+</html>
