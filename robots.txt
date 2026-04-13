@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://aiopentec.github.io/ai-tool-alternative-finder/sitemap.xml

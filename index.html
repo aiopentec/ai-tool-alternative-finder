@@ -5,10 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Tool Alternative Finder</title>
   <meta name="description" content="Discover free and cheaper alternatives to popular paid AI tools — with detailed comparisons. Save hundreds per year." />
+  <meta name="keywords" content="AI tool alternatives, free AI tools, ChatGPT alternative, Midjourney alternative, GitHub Copilot alternative" />
+  
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
   <meta property="og:title" content="AI Tool Alternative Finder" />
   <meta property="og:description" content="Discover free and cheaper alternatives to popular paid AI tools — with detailed comparisons. Save hundreds per year." />
-  <meta property="og:type" content="website" />
-  
+  <meta property="og:url" content="https://aiopentec.github.io/ai-tool-alternative-finder/" />
+  <meta property="og:site_name" content="AI Tool Alternative Finder" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AI Tool Alternative Finder" />
+  <meta name="twitter:description" content="Discover free and cheaper alternatives to popular paid AI tools — with detailed comparisons. Save hundreds per year." />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "AI Tool Alternative Finder",
+  "url": "https://aiopentec.github.io/ai-tool-alternative-finder/",
+  "description": "Discover free and cheaper alternatives to popular paid AI tools — with detailed comparisons. Save hundreds per year.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://aiopentec.github.io/ai-tool-alternative-finder/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
   
 <style>
   :root {
@@ -88,9 +114,29 @@
   footer a { color: var(--muted); }
   .search-bar { width: 100%; max-width: 500px; margin: 16px auto 0; display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px 16px; font-size: 14px; }
   .search-bar:focus { outline: none; border-color: var(--accent); }
+  .alt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin: 20px 0; }
+  .alt-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .alt-card:hover { border-color: var(--green); }
+  .alt-card .alt-name { font-size: 1.1rem; font-weight: 700; color: var(--green); }
+  .alt-card .alt-price { font-size: 12px; color: var(--muted); }
+  .alt-card .alt-links { display: flex; gap: 8px; margin-top: auto; }
+  .alt-card .alt-links a { flex: 1; text-align: center; padding: 6px 10px; border-radius: 5px; font-size: 12px; font-weight: 600; }
+  .btn-compare { background: var(--accent); color: #fff !important; }
+  .btn-migrate { background: rgba(63,185,80,.15); color: var(--green) !important; border: 1px solid rgba(63,185,80,.3); }
+  .step-list { list-style: none; padding: 0; counter-reset: steps; }
+  .step-list li { counter-increment: steps; display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .step-list li:last-child { border-bottom: none; }
+  .step-list li::before { content: counter(steps); background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
   @media (max-width: 600px) { header h1 { font-size: 1.5rem; } .hero-tools { flex-direction: column; } }
 </style>
-
+  <!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FGB481RVVS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FGB481RVVS');
+</script>
 </head>
 <body>
 
@@ -99,6 +145,8 @@
     <a href="index.html" class="brand">🤖 AI Tool Alternative Finder</a>
     <a href="savings-calculator/index.html" style="font-size:13px;color:var(--muted)">💰 Savings Calculator</a>
     <a href="changelog/index.html" style="font-size:13px;color:var(--muted)">📋 Changelog</a>
+    <a href="stats/index.html" style="font-size:13px;color:var(--muted)">📊 Stats</a>
+    <a href="blog/index.html" style="font-size:13px;color:var(--muted)">📝 Blog</a>
     <a href="about/index.html" style="font-size:13px;color:var(--muted)">About</a>
   </div>
 </nav>
@@ -109,7 +157,7 @@
     <p>Discover free and cheaper alternatives to popular paid AI tools — with detailed comparisons. Save hundreds per year.</p>
     <div class="stats">
       <div class="stat"><div class="num">32</div><div class="lbl">Comparisons</div></div>
-      <div class="stat"><div class="num">6</div><div class="lbl">Categories</div></div>
+      <div class="stat"><div class="num">26</div><div class="lbl">Tools Covered</div></div>
       <div class="stat"><div class="num">$0</div><div class="lbl">Cost to Run</div></div>
       <div class="stat"><div class="num">Daily</div><div class="lbl">Auto-Updated</div></div>
     </div>
@@ -118,13 +166,11 @@
 </header>
 
 <div class="container">
-
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
     <strong>💰 AI Tool Savings Calculator</strong>
     <p style="color:var(--muted);font-size:13px;margin-top:6px">Enter your team size → see exactly how much you save switching to free AI alternatives</p>
     <a href="savings-calculator/index.html" style="display:inline-block;margin-top:12px;background:var(--accent);color:#fff;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;">Calculate My Savings →</a>
   </div>
-
   <div class="filters"><button class="filter-btn active" data-cat="all">All</button><button class="filter-btn" data-cat="AI APIs & Infrastructure">💬 AI APIs & Infrastructure (6)</button><button class="filter-btn" data-cat="AI Coding">💻 AI Coding (5)</button><button class="filter-btn" data-cat="AI Image Generation">🎨 AI Image Generation (5)</button><button class="filter-btn" data-cat="AI Video">📹 AI Video (3)</button><button class="filter-btn" data-cat="AI Voice & Audio">🎤 AI Voice & Audio (5)</button><button class="filter-btn" data-cat="AI Writing & Chat">✍️ AI Writing & Chat (8)</button></div>
   <div class="grid">
 <div class="card" data-cat="AI Writing & Chat">
@@ -135,7 +181,10 @@
     <span class="tool">OpenRouter</span>
   </div>
   <div class="card-savings">💰 $20/month → Free tier available</div>
-  <a href="chatgpt-plus-vs-openrouter/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="chatgpt-plus-vs-openrouter/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-chatgpt-plus/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Writing & Chat">
   <div class="card-cat">✍️ AI Writing & Chat</div>
@@ -145,7 +194,10 @@
     <span class="tool">Mistral (Le Chat)</span>
   </div>
   <div class="card-savings">💰 $20/month → Free</div>
-  <a href="chatgpt-plus-vs-mistral-free/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="chatgpt-plus-vs-mistral-free/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-chatgpt-plus/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Writing & Chat">
   <div class="card-cat">✍️ AI Writing & Chat</div>
@@ -155,7 +207,10 @@
     <span class="tool">Open WebUI + Llama 3</span>
   </div>
   <div class="card-savings">💰 $39–$99/month → Free</div>
-  <a href="jasper-ai-vs-openwebui/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="jasper-ai-vs-openwebui/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-jasper-ai/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Writing & Chat">
   <div class="card-cat">✍️ AI Writing & Chat</div>
@@ -165,7 +220,10 @@
     <span class="tool">Open WebUI + Llama 3</span>
   </div>
   <div class="card-savings">💰 $36–$186/month → Free</div>
-  <a href="copy-ai-vs-openwebui/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="copy-ai-vs-openwebui/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-copy-ai/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Writing & Chat">
   <div class="card-cat">✍️ AI Writing & Chat</div>
@@ -175,7 +233,10 @@
     <span class="tool">LanguageTool</span>
   </div>
   <div class="card-savings">💰 $12–$15/month → Free</div>
-  <a href="grammarly-premium-vs-languagetool/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="grammarly-premium-vs-languagetool/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-grammarly-premium/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Writing & Chat">
   <div class="card-cat">✍️ AI Writing & Chat</div>
@@ -185,7 +246,10 @@
     <span class="tool">Obsidian + Smart Composer</span>
   </div>
   <div class="card-savings">💰 $16–$30/user/month → Free</div>
-  <a href="notion-ai-vs-obsidian/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="notion-ai-vs-obsidian/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-notion-ai/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Writing & Chat">
   <div class="card-cat">✍️ AI Writing & Chat</div>
@@ -195,7 +259,10 @@
     <span class="tool">Open WebUI + Mistral</span>
   </div>
   <div class="card-savings">💰 $16–$79/month → Free</div>
-  <a href="writesonic-vs-free-alternatives/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="writesonic-vs-free-alternatives/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-writesonic/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Writing & Chat">
   <div class="card-cat">✍️ AI Writing & Chat</div>
@@ -205,7 +272,10 @@
     <span class="tool">Phind</span>
   </div>
   <div class="card-savings">💰 $20/month → Free</div>
-  <a href="perplexity-pro-vs-phind/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="perplexity-pro-vs-phind/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-perplexity-pro/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Image Generation">
   <div class="card-cat">🎨 AI Image Generation</div>
@@ -215,7 +285,10 @@
     <span class="tool">Stable Diffusion (ComfyUI)</span>
   </div>
   <div class="card-savings">💰 $10–$60/month → Free</div>
-  <a href="midjourney-vs-stable-diffusion/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="midjourney-vs-stable-diffusion/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-midjourney/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Image Generation">
   <div class="card-cat">🎨 AI Image Generation</div>
@@ -225,7 +298,10 @@
     <span class="tool">Stable Diffusion (Automatic1111)</span>
   </div>
   <div class="card-savings">💰 $20/month → Free</div>
-  <a href="dalle3-vs-stable-diffusion/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="dalle3-vs-stable-diffusion/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-dalle3/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Image Generation">
   <div class="card-cat">🎨 AI Image Generation</div>
@@ -235,7 +311,10 @@
     <span class="tool">Stable Diffusion (ComfyUI)</span>
   </div>
   <div class="card-savings">💰 $4.99–$54.99/month → Free</div>
-  <a href="adobe-firefly-vs-stable-diffusion/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="adobe-firefly-vs-stable-diffusion/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-adobe-firefly/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Image Generation">
   <div class="card-cat">🎨 AI Image Generation</div>
@@ -245,7 +324,10 @@
     <span class="tool">Stable Diffusion + GIMP</span>
   </div>
   <div class="card-savings">💰 $14.99–$55/month → Free</div>
-  <a href="canva-ai-vs-stable-diffusion/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="canva-ai-vs-stable-diffusion/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-canva-ai/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Image Generation">
   <div class="card-cat">🎨 AI Image Generation</div>
@@ -255,7 +337,10 @@
     <span class="tool">ComfyUI + AnimateDiff</span>
   </div>
   <div class="card-savings">💰 $15–$95/month → Free</div>
-  <a href="runway-ml-vs-comfyui-video/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="runway-ml-vs-comfyui-video/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-runway-ml/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Coding">
   <div class="card-cat">💻 AI Coding</div>
@@ -265,7 +350,10 @@
     <span class="tool">Codeium</span>
   </div>
   <div class="card-savings">💰 $10–$19/month → Free</div>
-  <a href="github-copilot-vs-codeium/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="github-copilot-vs-codeium/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-github-copilot/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Coding">
   <div class="card-cat">💻 AI Coding</div>
@@ -275,7 +363,10 @@
     <span class="tool">Continue.dev + Ollama</span>
   </div>
   <div class="card-savings">💰 $10–$19/month → Free</div>
-  <a href="github-copilot-vs-continue-dev/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="github-copilot-vs-continue-dev/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-github-copilot/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Coding">
   <div class="card-cat">💻 AI Coding</div>
@@ -285,7 +376,10 @@
     <span class="tool">Continue.dev + VS Code</span>
   </div>
   <div class="card-savings">💰 $20/month → Free</div>
-  <a href="cursor-ai-vs-continue-dev/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="cursor-ai-vs-continue-dev/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-cursor-ai/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Coding">
   <div class="card-cat">💻 AI Coding</div>
@@ -295,7 +389,10 @@
     <span class="tool">Codeium</span>
   </div>
   <div class="card-savings">💰 $12/month → Free</div>
-  <a href="tabnine-pro-vs-codeium/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="tabnine-pro-vs-codeium/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-tabnine-pro/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Coding">
   <div class="card-cat">💻 AI Coding</div>
@@ -305,7 +402,10 @@
     <span class="tool">GitHub Codespaces + Continue.dev</span>
   </div>
   <div class="card-savings">💰 $20/month → Free (within limits)</div>
-  <a href="replit-ai-vs-free-alternatives/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="replit-ai-vs-free-alternatives/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-replit-ai/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Voice & Audio">
   <div class="card-cat">🎤 AI Voice & Audio</div>
@@ -315,7 +415,10 @@
     <span class="tool">Coqui TTS</span>
   </div>
   <div class="card-savings">💰 $5–$99/month → Free</div>
-  <a href="elevenlabs-vs-coqui-tts/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="elevenlabs-vs-coqui-tts/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-elevenlabs/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Voice & Audio">
   <div class="card-cat">🎤 AI Voice & Audio</div>
@@ -325,7 +428,10 @@
     <span class="tool">Coqui TTS / Piper TTS</span>
   </div>
   <div class="card-savings">💰 $19–$75/month → Free</div>
-  <a href="murf-ai-vs-coqui-tts/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="murf-ai-vs-coqui-tts/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-murf-ai/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Voice & Audio">
   <div class="card-cat">🎤 AI Voice & Audio</div>
@@ -335,7 +441,10 @@
     <span class="tool">Audacity + OpenAI Whisper</span>
   </div>
   <div class="card-savings">💰 $12–$24/month → Free</div>
-  <a href="descript-vs-whisper-audacity/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="descript-vs-whisper-audacity/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-descript/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Voice & Audio">
   <div class="card-cat">🎤 AI Voice & Audio</div>
@@ -345,7 +454,10 @@
     <span class="tool">OpenAI Whisper (local)</span>
   </div>
   <div class="card-savings">💰 $8.33–$20/month → Free</div>
-  <a href="otter-ai-vs-whisper/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="otter-ai-vs-whisper/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-otter-ai/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Voice & Audio">
   <div class="card-cat">🎤 AI Voice & Audio</div>
@@ -355,7 +467,10 @@
     <span class="tool">DeepFilterNet + Whisper</span>
   </div>
   <div class="card-savings">💰 $4.99+/month → Free</div>
-  <a href="adobe-podcast-vs-whisper/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="adobe-podcast-vs-whisper/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-adobe-podcast/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Video">
   <div class="card-cat">📹 AI Video</div>
@@ -365,7 +480,10 @@
     <span class="tool">SadTalker / DID Free Tier</span>
   </div>
   <div class="card-savings">💰 $18–$67/month → Free</div>
-  <a href="synthesia-vs-open-source-avatar/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="synthesia-vs-open-source-avatar/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-synthesia/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Video">
   <div class="card-cat">📹 AI Video</div>
@@ -375,7 +493,10 @@
     <span class="tool">Kdenlive + Whisper</span>
   </div>
   <div class="card-savings">💰 $19–$99/month → Free</div>
-  <a href="pictory-vs-kdenlive/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="pictory-vs-kdenlive/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-pictory/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI Video">
   <div class="card-cat">📹 AI Video</div>
@@ -385,7 +506,10 @@
     <span class="tool">Kdenlive + Stable Diffusion</span>
   </div>
   <div class="card-savings">💰 $20–$48/month → Free</div>
-  <a href="invideo-ai-vs-kdenlive/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="invideo-ai-vs-kdenlive/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-invideo-ai/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI APIs & Infrastructure">
   <div class="card-cat">💬 AI APIs & Infrastructure</div>
@@ -395,7 +519,10 @@
     <span class="tool">Ollama</span>
   </div>
   <div class="card-savings">💰 API costs → $0</div>
-  <a href="openai-api-vs-ollama/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="openai-api-vs-ollama/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-openai-api/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI APIs & Infrastructure">
   <div class="card-cat">💬 AI APIs & Infrastructure</div>
@@ -405,7 +532,10 @@
     <span class="tool">Groq API</span>
   </div>
   <div class="card-savings">💰 API costs → Free tier</div>
-  <a href="openai-api-vs-groq/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="openai-api-vs-groq/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-openai-api/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI APIs & Infrastructure">
   <div class="card-cat">💬 AI APIs & Infrastructure</div>
@@ -415,7 +545,10 @@
     <span class="tool">Together AI</span>
   </div>
   <div class="card-savings">💰 Up to 15x cheaper per token</div>
-  <a href="openai-api-vs-together-ai/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="openai-api-vs-together-ai/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-openai-api/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI APIs & Infrastructure">
   <div class="card-cat">💬 AI APIs & Infrastructure</div>
@@ -425,7 +558,10 @@
     <span class="tool">Ollama + Llama 3.1</span>
   </div>
   <div class="card-savings">💰 API costs → $0</div>
-  <a href="claude-api-vs-ollama/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="claude-api-vs-ollama/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-claude-api/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI APIs & Infrastructure">
   <div class="card-cat">💬 AI APIs & Infrastructure</div>
@@ -435,7 +571,10 @@
     <span class="tool">Fireworks AI</span>
   </div>
   <div class="card-savings">💰 Up to 10x cheaper per token</div>
-  <a href="openai-api-vs-fireworks-ai/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="openai-api-vs-fireworks-ai/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-openai-api/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div>
 <div class="card" data-cat="AI APIs & Infrastructure">
   <div class="card-cat">💬 AI APIs & Infrastructure</div>
@@ -445,7 +584,10 @@
     <span class="tool">Google Gemini (Free tier)</span>
   </div>
   <div class="card-savings">💰 $20/month → Free</div>
-  <a href="chatgpt-plus-vs-google-gemini-free/index.html" class="btn">Compare Now →</a>
+  <div style="display:flex;gap:6px;margin-top:auto">
+    <a href="chatgpt-plus-vs-google-gemini-free/index.html" class="btn" style="flex:2">Compare →</a>
+    <a href="alternatives-to-chatgpt-plus/index.html" class="btn" style="flex:1;background:rgba(63,185,80,.15);color:var(--green);font-size:11px">All Alts</a>
+  </div>
 </div></div>
 </div>
 
@@ -456,28 +598,27 @@
     <a href="privacy/index.html">Privacy Policy</a> &nbsp;·&nbsp;
     <a href="contact/index.html">Contact</a> &nbsp;·&nbsp;
     <a href="changelog/index.html">Changelog</a> &nbsp;·&nbsp;
-    <a href="stats/index.html">Stats</a></p>
-    <p style="margin-top:8px">Updated April 04, 2026 &nbsp;·&nbsp; $0/month to operate &nbsp;·&nbsp; Content for informational purposes only</p>
+    <a href="stats/index.html">Stats</a> &nbsp;·&nbsp;
+    <a href="blog/index.html">Blog</a></p>
+    <p style="margin-top:8px">Updated April 13, 2026 &nbsp;·&nbsp; $0/month to operate &nbsp;·&nbsp; Content for informational purposes only</p>
   </div>
 </footer>
 <script>
-  // Filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const cat = btn.dataset.cat;
-      document.querySelectorAll('.card').forEach(card => {
+      document.querySelectorAll('.card[data-cat]').forEach(card => {
         card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
       });
     });
   });
-  // Search
   const searchBar = document.querySelector('.search-bar');
   if (searchBar) {
     searchBar.addEventListener('input', () => {
       const q = searchBar.value.toLowerCase();
-      document.querySelectorAll('.card').forEach(card => {
+      document.querySelectorAll('.card[data-cat]').forEach(card => {
         card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
       });
     });

@@ -4,11 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>About — AI Tool Alternative Finder</title>
-  <meta name="description" content="About AI Tool Alternative Finder" />
-  <meta property="og:title" content="About — AI Tool Alternative Finder" />
-  <meta property="og:description" content="About AI Tool Alternative Finder" />
-  <meta property="og:type" content="website" />
+  <meta name="description" content="About AI Tool Alternative Finder — a free directory of alternatives to paid AI tools." />
+  
   <link rel="canonical" href="https://aiopentec.github.io/ai-tool-alternative-finder/about/" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="About — AI Tool Alternative Finder" />
+  <meta property="og:description" content="About AI Tool Alternative Finder — a free directory of alternatives to paid AI tools." />
+  <meta property="og:url" content="https://aiopentec.github.io/ai-tool-alternative-finder/about/" />
+  <meta property="og:site_name" content="AI Tool Alternative Finder" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="About — AI Tool Alternative Finder" />
+  <meta name="twitter:description" content="About AI Tool Alternative Finder — a free directory of alternatives to paid AI tools." />
+
+  
   
 <style>
   :root {
@@ -88,9 +101,29 @@
   footer a { color: var(--muted); }
   .search-bar { width: 100%; max-width: 500px; margin: 16px auto 0; display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px 16px; font-size: 14px; }
   .search-bar:focus { outline: none; border-color: var(--accent); }
+  .alt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin: 20px 0; }
+  .alt-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .alt-card:hover { border-color: var(--green); }
+  .alt-card .alt-name { font-size: 1.1rem; font-weight: 700; color: var(--green); }
+  .alt-card .alt-price { font-size: 12px; color: var(--muted); }
+  .alt-card .alt-links { display: flex; gap: 8px; margin-top: auto; }
+  .alt-card .alt-links a { flex: 1; text-align: center; padding: 6px 10px; border-radius: 5px; font-size: 12px; font-weight: 600; }
+  .btn-compare { background: var(--accent); color: #fff !important; }
+  .btn-migrate { background: rgba(63,185,80,.15); color: var(--green) !important; border: 1px solid rgba(63,185,80,.3); }
+  .step-list { list-style: none; padding: 0; counter-reset: steps; }
+  .step-list li { counter-increment: steps; display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .step-list li:last-child { border-bottom: none; }
+  .step-list li::before { content: counter(steps); background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
   @media (max-width: 600px) { header h1 { font-size: 1.5rem; } .hero-tools { flex-direction: column; } }
 </style>
-
+  <!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FGB481RVVS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FGB481RVVS');
+</script>
 </head>
 <body>
 
@@ -99,6 +132,8 @@
     <a href="../index.html" class="brand">🤖 AI Tool Alternative Finder</a>
     <a href="../savings-calculator/index.html" style="font-size:13px;color:var(--muted)">💰 Savings Calculator</a>
     <a href="../changelog/index.html" style="font-size:13px;color:var(--muted)">📋 Changelog</a>
+    <a href="../stats/index.html" style="font-size:13px;color:var(--muted)">📊 Stats</a>
+    <a href="../blog/index.html" style="font-size:13px;color:var(--muted)">📝 Blog</a>
     <a href="../about/index.html" style="font-size:13px;color:var(--muted)">About</a>
   </div>
 </nav>
@@ -108,43 +143,42 @@
   <h2>What is this?</h2>
   <p>AI Tool Alternative Finder is a free directory comparing popular paid AI tools to free and open-source alternatives. Every comparison includes pricing breakdowns, feature comparisons, setup guides, and migration instructions.</p>
   <h2 style="margin-top:24px">How does it work?</h2>
-  <p>The site is built with a Python script that generates static HTML pages, hosted on GitHub Pages at zero cost. The comparison data is curated and maintained by our team, with the build script running daily via GitHub Actions to keep information current.</p>
-  <h2 style="margin-top:24px">Why did we build this?</h2>
-  <p>AI tool costs have skyrocketed. A typical power user can easily spend $100–$300/month across ChatGPT Plus, GitHub Copilot, Midjourney, ElevenLabs, and other AI subscriptions. Excellent free alternatives exist for almost every use case — this site helps you find them.</p>
-  <h2 style="margin-top:24px">How often is it updated?</h2>
-  <p>The site rebuilds automatically every day via GitHub Actions. Pricing and feature information is reviewed and updated weekly.</p>
+  <p>The site is built by a Python script that generates static HTML, hosted on GitHub Pages at zero cost. GitHub Actions rebuilds and refreshes the site every day at 6 AM UTC automatically.</p>
+  <h2 style="margin-top:24px">Why?</h2>
+  <p>AI tool subscriptions add up fast — ChatGPT Plus, Copilot, Midjourney, ElevenLabs, and Jasper can easily cost $100–$300/month. Excellent free alternatives exist for almost every use case.</p>
+  <h2 style="margin-top:24px">What pages are included?</h2>
+  <p>For each comparison we generate: a full comparison page, a step-by-step migration guide, and an "alternatives to" page for the paid tool — giving Google multiple entry points to the same underlying content.</p>
   <p style="margin-top:32px"><a href="../index.html">← View All Comparisons</a></p>
 </div>
 
 <footer>
   <div class="container">
     <p><strong>AI Tool Alternative Finder</strong> &nbsp;·&nbsp; Hosted on <a href="https://pages.github.com">GitHub Pages</a> &nbsp;·&nbsp;
-    <a href="about/index.html">About</a> &nbsp;·&nbsp;
-    <a href="privacy/index.html">Privacy Policy</a> &nbsp;·&nbsp;
-    <a href="contact/index.html">Contact</a> &nbsp;·&nbsp;
-    <a href="changelog/index.html">Changelog</a> &nbsp;·&nbsp;
-    <a href="stats/index.html">Stats</a></p>
-    <p style="margin-top:8px">Updated April 04, 2026 &nbsp;·&nbsp; $0/month to operate &nbsp;·&nbsp; Content for informational purposes only</p>
+    <a href="../about/index.html">About</a> &nbsp;·&nbsp;
+    <a href="../privacy/index.html">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="../contact/index.html">Contact</a> &nbsp;·&nbsp;
+    <a href="../changelog/index.html">Changelog</a> &nbsp;·&nbsp;
+    <a href="../stats/index.html">Stats</a> &nbsp;·&nbsp;
+    <a href="../blog/index.html">Blog</a></p>
+    <p style="margin-top:8px">Updated April 13, 2026 &nbsp;·&nbsp; $0/month to operate &nbsp;·&nbsp; Content for informational purposes only</p>
   </div>
 </footer>
 <script>
-  // Filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const cat = btn.dataset.cat;
-      document.querySelectorAll('.card').forEach(card => {
+      document.querySelectorAll('.card[data-cat]').forEach(card => {
         card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
       });
     });
   });
-  // Search
   const searchBar = document.querySelector('.search-bar');
   if (searchBar) {
     searchBar.addEventListener('input', () => {
       const q = searchBar.value.toLowerCase();
-      document.querySelectorAll('.card').forEach(card => {
+      document.querySelectorAll('.card[data-cat]').forEach(card => {
         card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
       });
     });

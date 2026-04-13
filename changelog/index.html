@@ -5,10 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Changelog — AI Tool Alternative Finder</title>
   <meta name="description" content="All 32 AI tool comparisons auto-updated daily." />
+  
+  <link rel="canonical" href="https://aiopentec.github.io/ai-tool-alternative-finder/changelog/" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
   <meta property="og:title" content="Changelog — AI Tool Alternative Finder" />
   <meta property="og:description" content="All 32 AI tool comparisons auto-updated daily." />
-  <meta property="og:type" content="website" />
-  <link rel="canonical" href="https://aiopentec.github.io/ai-tool-alternative-finder/changelog/" />
+  <meta property="og:url" content="https://aiopentec.github.io/ai-tool-alternative-finder/changelog/" />
+  <meta property="og:site_name" content="AI Tool Alternative Finder" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Changelog — AI Tool Alternative Finder" />
+  <meta name="twitter:description" content="All 32 AI tool comparisons auto-updated daily." />
+
+  
   
 <style>
   :root {
@@ -88,9 +101,29 @@
   footer a { color: var(--muted); }
   .search-bar { width: 100%; max-width: 500px; margin: 16px auto 0; display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px 16px; font-size: 14px; }
   .search-bar:focus { outline: none; border-color: var(--accent); }
+  .alt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin: 20px 0; }
+  .alt-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .alt-card:hover { border-color: var(--green); }
+  .alt-card .alt-name { font-size: 1.1rem; font-weight: 700; color: var(--green); }
+  .alt-card .alt-price { font-size: 12px; color: var(--muted); }
+  .alt-card .alt-links { display: flex; gap: 8px; margin-top: auto; }
+  .alt-card .alt-links a { flex: 1; text-align: center; padding: 6px 10px; border-radius: 5px; font-size: 12px; font-weight: 600; }
+  .btn-compare { background: var(--accent); color: #fff !important; }
+  .btn-migrate { background: rgba(63,185,80,.15); color: var(--green) !important; border: 1px solid rgba(63,185,80,.3); }
+  .step-list { list-style: none; padding: 0; counter-reset: steps; }
+  .step-list li { counter-increment: steps; display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .step-list li:last-child { border-bottom: none; }
+  .step-list li::before { content: counter(steps); background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
   @media (max-width: 600px) { header h1 { font-size: 1.5rem; } .hero-tools { flex-direction: column; } }
 </style>
-
+  <!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FGB481RVVS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FGB481RVVS');
+</script>
 </head>
 <body>
 
@@ -99,6 +132,8 @@
     <a href="../index.html" class="brand">🤖 AI Tool Alternative Finder</a>
     <a href="../savings-calculator/index.html" style="font-size:13px;color:var(--muted)">💰 Savings Calculator</a>
     <a href="../changelog/index.html" style="font-size:13px;color:var(--muted)">📋 Changelog</a>
+    <a href="../stats/index.html" style="font-size:13px;color:var(--muted)">📊 Stats</a>
+    <a href="../blog/index.html" style="font-size:13px;color:var(--muted)">📝 Blog</a>
     <a href="../about/index.html" style="font-size:13px;color:var(--muted)">About</a>
   </div>
 </nav>
@@ -109,223 +144,316 @@
     <p>All 32 comparisons auto-updated daily. Pricing verified, new tools added.</p>
     <div class="stats">
       <div class="stat"><div class="num">32</div><div class="lbl">Comparisons</div></div>
+      <div class="stat"><div class="num">32</div><div class="lbl">Migration Guides</div></div>
       <div class="stat"><div class="num">6</div><div class="lbl">Categories</div></div>
       <div class="stat"><div class="num">$0</div><div class="lbl">Cost to Run</div></div>
-      <div class="stat"><div class="num">Daily</div><div class="lbl">Auto-Updated</div></div>
     </div>
   </div>
 </header>
 <div class="container">
-
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px">
-    <h2 style="margin:0 0 8px">🟢 Latest Update</h2>
-    <p>✅ Auto-updated April 04, 2026</p>
-    <ul style="margin-top:10px;padding-left:20px;color:var(--muted);font-size:14px">
-      <li>All 32 comparison pages refreshed with latest pricing data</li>
-      <li>Migration guides updated for all tools</li>
-      <li>Savings calculator recalibrated</li>
-      <li>Sitemap submitted to Google Search Console</li>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin:24px 0">
+    <h2 style="margin:0 0 12px">🟢 Latest Update — April 13, 2026</h2>
+    <ul style="padding-left:20px;color:var(--muted);font-size:14px;line-height:2">
+      <li>All 32 comparison pages refreshed with latest pricing</li>
+      <li>All 32 migration guide pages updated</li>
+      <li>Alternatives-to pages regenerated for all paid tools</li>
+      <li>Sitemap updated and submitted to Google Search Console</li>
     </ul>
   </div>
-
-  <h2>📄 All Comparisons — April 04, 2026</h2>
+  <div class="stats" style="justify-content:flex-start;margin-bottom:24px"><div class="stat"><div class="num">8</div><div class="lbl">AI Writing & Chat</div></div><div class="stat"><div class="num">5</div><div class="lbl">AI Image Generation</div></div><div class="stat"><div class="num">5</div><div class="lbl">AI Coding</div></div><div class="stat"><div class="num">5</div><div class="lbl">AI Voice & Audio</div></div><div class="stat"><div class="num">3</div><div class="lbl">AI Video</div></div><div class="stat"><div class="num">6</div><div class="lbl">AI APIs & Infrastructure</div></div></div>
+  <h2>📄 All Comparisons — April 13, 2026</h2>
   <table>
-    <thead><tr><th>Category</th><th>Paid Tool</th><th>Free Alternative</th><th>Savings</th><th>Link</th></tr></thead>
+    <thead><tr><th>Category</th><th>Paid Tool</th><th>Free Alternative</th><th>Savings</th><th>Links</th></tr></thead>
     <tbody><tr>
   <td>✍️ AI Writing & Chat</td>
   <td><strong>ChatGPT Plus</strong></td>
-  <td><strong>OpenRouter</strong></td>
-  <td style="color:var(--green)">$20/month → Free tier available</td>
-  <td><a href="../chatgpt-plus-vs-openrouter/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">OpenRouter</strong></td>
+  <td style="color:var(--green);font-size:12px">$20/month → Free tier available</td>
+  <td style="font-size:12px">
+    <a href="../chatgpt-plus-vs-openrouter/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-chatgpt-plus-to-openrouter/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>✍️ AI Writing & Chat</td>
   <td><strong>ChatGPT Plus</strong></td>
-  <td><strong>Mistral (Le Chat)</strong></td>
-  <td style="color:var(--green)">$20/month → Free</td>
-  <td><a href="../chatgpt-plus-vs-mistral-free/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Mistral (Le Chat)</strong></td>
+  <td style="color:var(--green);font-size:12px">$20/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../chatgpt-plus-vs-mistral-free/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-chatgpt-plus-to-mistral-free/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>✍️ AI Writing & Chat</td>
   <td><strong>Jasper AI</strong></td>
-  <td><strong>Open WebUI + Llama 3</strong></td>
-  <td style="color:var(--green)">$39–$99/month → Free</td>
-  <td><a href="../jasper-ai-vs-openwebui/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Open WebUI + Llama 3</strong></td>
+  <td style="color:var(--green);font-size:12px">$39–$99/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../jasper-ai-vs-openwebui/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-jasper-ai-to-openwebui/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>✍️ AI Writing & Chat</td>
   <td><strong>Copy.ai</strong></td>
-  <td><strong>Open WebUI + Llama 3</strong></td>
-  <td style="color:var(--green)">$36–$186/month → Free</td>
-  <td><a href="../copy-ai-vs-openwebui/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Open WebUI + Llama 3</strong></td>
+  <td style="color:var(--green);font-size:12px">$36–$186/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../copy-ai-vs-openwebui/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-copy-ai-to-openwebui/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>✍️ AI Writing & Chat</td>
   <td><strong>Grammarly Premium</strong></td>
-  <td><strong>LanguageTool</strong></td>
-  <td style="color:var(--green)">$12–$15/month → Free</td>
-  <td><a href="../grammarly-premium-vs-languagetool/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">LanguageTool</strong></td>
+  <td style="color:var(--green);font-size:12px">$12–$15/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../grammarly-premium-vs-languagetool/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-grammarly-premium-to-languagetool/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>✍️ AI Writing & Chat</td>
   <td><strong>Notion AI</strong></td>
-  <td><strong>Obsidian + Smart Composer</strong></td>
-  <td style="color:var(--green)">$16–$30/user/month → Free</td>
-  <td><a href="../notion-ai-vs-obsidian/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Obsidian + Smart Composer</strong></td>
+  <td style="color:var(--green);font-size:12px">$16–$30/user/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../notion-ai-vs-obsidian/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-notion-ai-to-obsidian/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>✍️ AI Writing & Chat</td>
   <td><strong>Writesonic</strong></td>
-  <td><strong>Open WebUI + Mistral</strong></td>
-  <td style="color:var(--green)">$16–$79/month → Free</td>
-  <td><a href="../writesonic-vs-free-alternatives/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Open WebUI + Mistral</strong></td>
+  <td style="color:var(--green);font-size:12px">$16–$79/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../writesonic-vs-free-alternatives/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-writesonic-to-free-alternatives/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>✍️ AI Writing & Chat</td>
   <td><strong>Perplexity Pro</strong></td>
-  <td><strong>Phind</strong></td>
-  <td style="color:var(--green)">$20/month → Free</td>
-  <td><a href="../perplexity-pro-vs-phind/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Phind</strong></td>
+  <td style="color:var(--green);font-size:12px">$20/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../perplexity-pro-vs-phind/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-perplexity-pro-to-phind/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>🎨 AI Image Generation</td>
   <td><strong>Midjourney</strong></td>
-  <td><strong>Stable Diffusion (ComfyUI)</strong></td>
-  <td style="color:var(--green)">$10–$60/month → Free</td>
-  <td><a href="../midjourney-vs-stable-diffusion/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Stable Diffusion (ComfyUI)</strong></td>
+  <td style="color:var(--green);font-size:12px">$10–$60/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../midjourney-vs-stable-diffusion/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-midjourney-to-stable-diffusion/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>🎨 AI Image Generation</td>
   <td><strong>DALL-E 3 (via ChatGPT Plus)</strong></td>
-  <td><strong>Stable Diffusion (Automatic1111)</strong></td>
-  <td style="color:var(--green)">$20/month → Free</td>
-  <td><a href="../dalle3-vs-stable-diffusion/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Stable Diffusion (Automatic1111)</strong></td>
+  <td style="color:var(--green);font-size:12px">$20/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../dalle3-vs-stable-diffusion/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-dalle3-to-stable-diffusion/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>🎨 AI Image Generation</td>
   <td><strong>Adobe Firefly</strong></td>
-  <td><strong>Stable Diffusion (ComfyUI)</strong></td>
-  <td style="color:var(--green)">$4.99–$54.99/month → Free</td>
-  <td><a href="../adobe-firefly-vs-stable-diffusion/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Stable Diffusion (ComfyUI)</strong></td>
+  <td style="color:var(--green);font-size:12px">$4.99–$54.99/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../adobe-firefly-vs-stable-diffusion/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-adobe-firefly-to-stable-diffusion/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>🎨 AI Image Generation</td>
   <td><strong>Canva Pro + AI</strong></td>
-  <td><strong>Stable Diffusion + GIMP</strong></td>
-  <td style="color:var(--green)">$14.99–$55/month → Free</td>
-  <td><a href="../canva-ai-vs-stable-diffusion/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Stable Diffusion + GIMP</strong></td>
+  <td style="color:var(--green);font-size:12px">$14.99–$55/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../canva-ai-vs-stable-diffusion/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-canva-ai-to-stable-diffusion/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>🎨 AI Image Generation</td>
   <td><strong>Runway ML</strong></td>
-  <td><strong>ComfyUI + AnimateDiff</strong></td>
-  <td style="color:var(--green)">$15–$95/month → Free</td>
-  <td><a href="../runway-ml-vs-comfyui-video/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">ComfyUI + AnimateDiff</strong></td>
+  <td style="color:var(--green);font-size:12px">$15–$95/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../runway-ml-vs-comfyui-video/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-runway-ml-to-comfyui-video/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>💻 AI Coding</td>
   <td><strong>GitHub Copilot</strong></td>
-  <td><strong>Codeium</strong></td>
-  <td style="color:var(--green)">$10–$19/month → Free</td>
-  <td><a href="../github-copilot-vs-codeium/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Codeium</strong></td>
+  <td style="color:var(--green);font-size:12px">$10–$19/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../github-copilot-vs-codeium/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-github-copilot-to-codeium/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>💻 AI Coding</td>
   <td><strong>GitHub Copilot</strong></td>
-  <td><strong>Continue.dev + Ollama</strong></td>
-  <td style="color:var(--green)">$10–$19/month → Free</td>
-  <td><a href="../github-copilot-vs-continue-dev/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Continue.dev + Ollama</strong></td>
+  <td style="color:var(--green);font-size:12px">$10–$19/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../github-copilot-vs-continue-dev/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-github-copilot-to-continue-dev/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>💻 AI Coding</td>
   <td><strong>Cursor AI</strong></td>
-  <td><strong>Continue.dev + VS Code</strong></td>
-  <td style="color:var(--green)">$20/month → Free</td>
-  <td><a href="../cursor-ai-vs-continue-dev/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Continue.dev + VS Code</strong></td>
+  <td style="color:var(--green);font-size:12px">$20/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../cursor-ai-vs-continue-dev/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-cursor-ai-to-continue-dev/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>💻 AI Coding</td>
   <td><strong>Tabnine Pro</strong></td>
-  <td><strong>Codeium</strong></td>
-  <td style="color:var(--green)">$12/month → Free</td>
-  <td><a href="../tabnine-pro-vs-codeium/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Codeium</strong></td>
+  <td style="color:var(--green);font-size:12px">$12/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../tabnine-pro-vs-codeium/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-tabnine-pro-to-codeium/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>💻 AI Coding</td>
   <td><strong>Replit AI (Core)</strong></td>
-  <td><strong>GitHub Codespaces + Continue.dev</strong></td>
-  <td style="color:var(--green)">$20/month → Free (within limits)</td>
-  <td><a href="../replit-ai-vs-free-alternatives/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">GitHub Codespaces + Continue.dev</strong></td>
+  <td style="color:var(--green);font-size:12px">$20/month → Free (within limits)</td>
+  <td style="font-size:12px">
+    <a href="../replit-ai-vs-free-alternatives/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-replit-ai-to-free-alternatives/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>🎤 AI Voice & Audio</td>
   <td><strong>ElevenLabs</strong></td>
-  <td><strong>Coqui TTS</strong></td>
-  <td style="color:var(--green)">$5–$99/month → Free</td>
-  <td><a href="../elevenlabs-vs-coqui-tts/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Coqui TTS</strong></td>
+  <td style="color:var(--green);font-size:12px">$5–$99/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../elevenlabs-vs-coqui-tts/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-elevenlabs-to-coqui-tts/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>🎤 AI Voice & Audio</td>
   <td><strong>Murf AI</strong></td>
-  <td><strong>Coqui TTS / Piper TTS</strong></td>
-  <td style="color:var(--green)">$19–$75/month → Free</td>
-  <td><a href="../murf-ai-vs-coqui-tts/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Coqui TTS / Piper TTS</strong></td>
+  <td style="color:var(--green);font-size:12px">$19–$75/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../murf-ai-vs-coqui-tts/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-murf-ai-to-coqui-tts/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>🎤 AI Voice & Audio</td>
   <td><strong>Descript</strong></td>
-  <td><strong>Audacity + OpenAI Whisper</strong></td>
-  <td style="color:var(--green)">$12–$24/month → Free</td>
-  <td><a href="../descript-vs-whisper-audacity/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Audacity + OpenAI Whisper</strong></td>
+  <td style="color:var(--green);font-size:12px">$12–$24/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../descript-vs-whisper-audacity/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-descript-to-whisper-audacity/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>🎤 AI Voice & Audio</td>
   <td><strong>Otter.ai</strong></td>
-  <td><strong>OpenAI Whisper (local)</strong></td>
-  <td style="color:var(--green)">$8.33–$20/month → Free</td>
-  <td><a href="../otter-ai-vs-whisper/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">OpenAI Whisper (local)</strong></td>
+  <td style="color:var(--green);font-size:12px">$8.33–$20/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../otter-ai-vs-whisper/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-otter-ai-to-whisper/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>🎤 AI Voice & Audio</td>
   <td><strong>Adobe Podcast (Enhance)</strong></td>
-  <td><strong>DeepFilterNet + Whisper</strong></td>
-  <td style="color:var(--green)">$4.99+/month → Free</td>
-  <td><a href="../adobe-podcast-vs-whisper/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">DeepFilterNet + Whisper</strong></td>
+  <td style="color:var(--green);font-size:12px">$4.99+/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../adobe-podcast-vs-whisper/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-adobe-podcast-to-whisper/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>📹 AI Video</td>
   <td><strong>Synthesia</strong></td>
-  <td><strong>SadTalker / DID Free Tier</strong></td>
-  <td style="color:var(--green)">$18–$67/month → Free</td>
-  <td><a href="../synthesia-vs-open-source-avatar/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">SadTalker / DID Free Tier</strong></td>
+  <td style="color:var(--green);font-size:12px">$18–$67/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../synthesia-vs-open-source-avatar/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-synthesia-to-open-source-avatar/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>📹 AI Video</td>
   <td><strong>Pictory AI</strong></td>
-  <td><strong>Kdenlive + Whisper</strong></td>
-  <td style="color:var(--green)">$19–$99/month → Free</td>
-  <td><a href="../pictory-vs-kdenlive/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Kdenlive + Whisper</strong></td>
+  <td style="color:var(--green);font-size:12px">$19–$99/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../pictory-vs-kdenlive/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-pictory-to-kdenlive/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>📹 AI Video</td>
   <td><strong>InVideo AI</strong></td>
-  <td><strong>Kdenlive + Stable Diffusion</strong></td>
-  <td style="color:var(--green)">$20–$48/month → Free</td>
-  <td><a href="../invideo-ai-vs-kdenlive/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Kdenlive + Stable Diffusion</strong></td>
+  <td style="color:var(--green);font-size:12px">$20–$48/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../invideo-ai-vs-kdenlive/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-invideo-ai-to-kdenlive/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>💬 AI APIs & Infrastructure</td>
   <td><strong>OpenAI API</strong></td>
-  <td><strong>Ollama</strong></td>
-  <td style="color:var(--green)">API costs → $0</td>
-  <td><a href="../openai-api-vs-ollama/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Ollama</strong></td>
+  <td style="color:var(--green);font-size:12px">API costs → $0</td>
+  <td style="font-size:12px">
+    <a href="../openai-api-vs-ollama/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-openai-api-to-ollama/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>💬 AI APIs & Infrastructure</td>
   <td><strong>OpenAI API</strong></td>
-  <td><strong>Groq API</strong></td>
-  <td style="color:var(--green)">API costs → Free tier</td>
-  <td><a href="../openai-api-vs-groq/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Groq API</strong></td>
+  <td style="color:var(--green);font-size:12px">API costs → Free tier</td>
+  <td style="font-size:12px">
+    <a href="../openai-api-vs-groq/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-openai-api-to-groq/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>💬 AI APIs & Infrastructure</td>
   <td><strong>OpenAI API</strong></td>
-  <td><strong>Together AI</strong></td>
-  <td style="color:var(--green)">Up to 15x cheaper per token</td>
-  <td><a href="../openai-api-vs-together-ai/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Together AI</strong></td>
+  <td style="color:var(--green);font-size:12px">Up to 15x cheaper per token</td>
+  <td style="font-size:12px">
+    <a href="../openai-api-vs-together-ai/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-openai-api-to-together-ai/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>💬 AI APIs & Infrastructure</td>
   <td><strong>Anthropic Claude API</strong></td>
-  <td><strong>Ollama + Llama 3.1</strong></td>
-  <td style="color:var(--green)">API costs → $0</td>
-  <td><a href="../claude-api-vs-ollama/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Ollama + Llama 3.1</strong></td>
+  <td style="color:var(--green);font-size:12px">API costs → $0</td>
+  <td style="font-size:12px">
+    <a href="../claude-api-vs-ollama/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-claude-api-to-ollama/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>💬 AI APIs & Infrastructure</td>
   <td><strong>OpenAI API</strong></td>
-  <td><strong>Fireworks AI</strong></td>
-  <td style="color:var(--green)">Up to 10x cheaper per token</td>
-  <td><a href="../openai-api-vs-fireworks-ai/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Fireworks AI</strong></td>
+  <td style="color:var(--green);font-size:12px">Up to 10x cheaper per token</td>
+  <td style="font-size:12px">
+    <a href="../openai-api-vs-fireworks-ai/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-openai-api-to-fireworks-ai/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr><tr>
   <td>💬 AI APIs & Infrastructure</td>
   <td><strong>ChatGPT Plus</strong></td>
-  <td><strong>Google Gemini (Free tier)</strong></td>
-  <td style="color:var(--green)">$20/month → Free</td>
-  <td><a href="../chatgpt-plus-vs-google-gemini-free/index.html">Compare →</a></td>
+  <td><strong style="color:var(--green)">Google Gemini (Free tier)</strong></td>
+  <td style="color:var(--green);font-size:12px">$20/month → Free</td>
+  <td style="font-size:12px">
+    <a href="../chatgpt-plus-vs-google-gemini-free/index.html">Compare →</a> &nbsp;
+    <a href="../migrate-chatgpt-plus-to-google-gemini-free/index.html" style="color:var(--green)">Migrate →</a>
+  </td>
 </tr></tbody>
   </table>
-
   <p style="margin-top:32px;font-size:13px;color:var(--muted)">This site auto-updates daily via GitHub Actions. Zero cost, 100% open source.</p>
   <p style="margin-top:12px"><a href="../index.html">← View All Comparisons</a></p>
 </div>
@@ -333,32 +461,31 @@
 <footer>
   <div class="container">
     <p><strong>AI Tool Alternative Finder</strong> &nbsp;·&nbsp; Hosted on <a href="https://pages.github.com">GitHub Pages</a> &nbsp;·&nbsp;
-    <a href="about/index.html">About</a> &nbsp;·&nbsp;
-    <a href="privacy/index.html">Privacy Policy</a> &nbsp;·&nbsp;
-    <a href="contact/index.html">Contact</a> &nbsp;·&nbsp;
-    <a href="changelog/index.html">Changelog</a> &nbsp;·&nbsp;
-    <a href="stats/index.html">Stats</a></p>
-    <p style="margin-top:8px">Updated April 04, 2026 &nbsp;·&nbsp; $0/month to operate &nbsp;·&nbsp; Content for informational purposes only</p>
+    <a href="../about/index.html">About</a> &nbsp;·&nbsp;
+    <a href="../privacy/index.html">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="../contact/index.html">Contact</a> &nbsp;·&nbsp;
+    <a href="../changelog/index.html">Changelog</a> &nbsp;·&nbsp;
+    <a href="../stats/index.html">Stats</a> &nbsp;·&nbsp;
+    <a href="../blog/index.html">Blog</a></p>
+    <p style="margin-top:8px">Updated April 13, 2026 &nbsp;·&nbsp; $0/month to operate &nbsp;·&nbsp; Content for informational purposes only</p>
   </div>
 </footer>
 <script>
-  // Filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const cat = btn.dataset.cat;
-      document.querySelectorAll('.card').forEach(card => {
+      document.querySelectorAll('.card[data-cat]').forEach(card => {
         card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
       });
     });
   });
-  // Search
   const searchBar = document.querySelector('.search-bar');
   if (searchBar) {
     searchBar.addEventListener('input', () => {
       const q = searchBar.value.toLowerCase();
-      document.querySelectorAll('.card').forEach(card => {
+      document.querySelectorAll('.card[data-cat]').forEach(card => {
         card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
       });
     });

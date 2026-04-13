@@ -5,10 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Tool Savings Calculator — AI Tool Alternative Finder</title>
   <meta name="description" content="Calculate how much you save by switching from paid AI tools to free alternatives" />
+  <meta name="keywords" content="AI tool savings, ChatGPT cost, AI subscription cost calculator" />
+  <link rel="canonical" href="https://aiopentec.github.io/ai-tool-alternative-finder/savings-calculator/" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
   <meta property="og:title" content="AI Tool Savings Calculator — AI Tool Alternative Finder" />
   <meta property="og:description" content="Calculate how much you save by switching from paid AI tools to free alternatives" />
-  <meta property="og:type" content="website" />
-  <link rel="canonical" href="https://aiopentec.github.io/ai-tool-alternative-finder/savings-calculator/" />
+  <meta property="og:url" content="https://aiopentec.github.io/ai-tool-alternative-finder/savings-calculator/" />
+  <meta property="og:site_name" content="AI Tool Alternative Finder" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AI Tool Savings Calculator — AI Tool Alternative Finder" />
+  <meta name="twitter:description" content="Calculate how much you save by switching from paid AI tools to free alternatives" />
+
+  
   
 <style>
   :root {
@@ -88,9 +101,29 @@
   footer a { color: var(--muted); }
   .search-bar { width: 100%; max-width: 500px; margin: 16px auto 0; display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px 16px; font-size: 14px; }
   .search-bar:focus { outline: none; border-color: var(--accent); }
+  .alt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin: 20px 0; }
+  .alt-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .alt-card:hover { border-color: var(--green); }
+  .alt-card .alt-name { font-size: 1.1rem; font-weight: 700; color: var(--green); }
+  .alt-card .alt-price { font-size: 12px; color: var(--muted); }
+  .alt-card .alt-links { display: flex; gap: 8px; margin-top: auto; }
+  .alt-card .alt-links a { flex: 1; text-align: center; padding: 6px 10px; border-radius: 5px; font-size: 12px; font-weight: 600; }
+  .btn-compare { background: var(--accent); color: #fff !important; }
+  .btn-migrate { background: rgba(63,185,80,.15); color: var(--green) !important; border: 1px solid rgba(63,185,80,.3); }
+  .step-list { list-style: none; padding: 0; counter-reset: steps; }
+  .step-list li { counter-increment: steps; display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .step-list li:last-child { border-bottom: none; }
+  .step-list li::before { content: counter(steps); background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
   @media (max-width: 600px) { header h1 { font-size: 1.5rem; } .hero-tools { flex-direction: column; } }
 </style>
-
+  <!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FGB481RVVS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FGB481RVVS');
+</script>
 </head>
 <body>
 
@@ -99,6 +132,8 @@
     <a href="../index.html" class="brand">🤖 AI Tool Alternative Finder</a>
     <a href="../savings-calculator/index.html" style="font-size:13px;color:var(--muted)">💰 Savings Calculator</a>
     <a href="../changelog/index.html" style="font-size:13px;color:var(--muted)">📋 Changelog</a>
+    <a href="../stats/index.html" style="font-size:13px;color:var(--muted)">📊 Stats</a>
+    <a href="../blog/index.html" style="font-size:13px;color:var(--muted)">📝 Blog</a>
     <a href="../about/index.html" style="font-size:13px;color:var(--muted)">About</a>
   </div>
 </nav>
@@ -249,13 +284,11 @@
   <td style="color:var(--green)">Google Gemini (Free tier) — Free</td>
 </tr></tbody>
   </table>
-
   <p style="margin-top:32px"><a href="../index.html">← View All Comparisons</a></p>
 </div>
 
 <script>
 const tools = [{"name": "ChatGPT Plus", "free": "OpenRouter", "slug": "chatgpt-plus-vs-openrouter"}, {"name": "ChatGPT Plus", "free": "Mistral (Le Chat)", "slug": "chatgpt-plus-vs-mistral-free"}, {"name": "Jasper AI", "free": "Open WebUI + Llama 3", "slug": "jasper-ai-vs-openwebui"}, {"name": "Copy.ai", "free": "Open WebUI + Llama 3", "slug": "copy-ai-vs-openwebui"}, {"name": "Grammarly Premium", "free": "LanguageTool", "slug": "grammarly-premium-vs-languagetool"}, {"name": "Notion AI", "free": "Obsidian + Smart Composer", "slug": "notion-ai-vs-obsidian"}, {"name": "Writesonic", "free": "Open WebUI + Mistral", "slug": "writesonic-vs-free-alternatives"}, {"name": "Perplexity Pro", "free": "Phind", "slug": "perplexity-pro-vs-phind"}, {"name": "Midjourney", "free": "Stable Diffusion (ComfyUI)", "slug": "midjourney-vs-stable-diffusion"}, {"name": "DALL-E 3 (via ChatGPT Plus)", "free": "Stable Diffusion (Automatic1111)", "slug": "dalle3-vs-stable-diffusion"}, {"name": "Adobe Firefly", "free": "Stable Diffusion (ComfyUI)", "slug": "adobe-firefly-vs-stable-diffusion"}, {"name": "Canva Pro + AI", "free": "Stable Diffusion + GIMP", "slug": "canva-ai-vs-stable-diffusion"}, {"name": "Runway ML", "free": "ComfyUI + AnimateDiff", "slug": "runway-ml-vs-comfyui-video"}, {"name": "GitHub Copilot", "free": "Codeium", "slug": "github-copilot-vs-codeium"}, {"name": "GitHub Copilot", "free": "Continue.dev + Ollama", "slug": "github-copilot-vs-continue-dev"}, {"name": "Cursor AI", "free": "Continue.dev + VS Code", "slug": "cursor-ai-vs-continue-dev"}, {"name": "Tabnine Pro", "free": "Codeium", "slug": "tabnine-pro-vs-codeium"}, {"name": "Replit AI (Core)", "free": "GitHub Codespaces + Continue.dev", "slug": "replit-ai-vs-free-alternatives"}, {"name": "ElevenLabs", "free": "Coqui TTS", "slug": "elevenlabs-vs-coqui-tts"}, {"name": "Murf AI", "free": "Coqui TTS / Piper TTS", "slug": "murf-ai-vs-coqui-tts"}, {"name": "Descript", "free": "Audacity + OpenAI Whisper", "slug": "descript-vs-whisper-audacity"}, {"name": "Otter.ai", "free": "OpenAI Whisper (local)", "slug": "otter-ai-vs-whisper"}, {"name": "Adobe Podcast (Enhance)", "free": "DeepFilterNet + Whisper", "slug": "adobe-podcast-vs-whisper"}, {"name": "Synthesia", "free": "SadTalker / DID Free Tier", "slug": "synthesia-vs-open-source-avatar"}, {"name": "Pictory AI", "free": "Kdenlive + Whisper", "slug": "pictory-vs-kdenlive"}, {"name": "InVideo AI", "free": "Kdenlive + Stable Diffusion", "slug": "invideo-ai-vs-kdenlive"}, {"name": "OpenAI API", "free": "Ollama", "slug": "openai-api-vs-ollama"}, {"name": "OpenAI API", "free": "Groq API", "slug": "openai-api-vs-groq"}, {"name": "OpenAI API", "free": "Together AI", "slug": "openai-api-vs-together-ai"}, {"name": "Anthropic Claude API", "free": "Ollama + Llama 3.1", "slug": "claude-api-vs-ollama"}, {"name": "OpenAI API", "free": "Fireworks AI", "slug": "openai-api-vs-fireworks-ai"}, {"name": "ChatGPT Plus", "free": "Google Gemini (Free tier)", "slug": "chatgpt-plus-vs-google-gemini-free"}];
-
 function calc() {
   const seats = parseInt(document.getElementById('seats').value) || 1;
   const savings = [
@@ -267,6 +300,8 @@ function calc() {
     { name:'Runway ML', monthly: 35, per:'flat' },
     { name:'Otter.ai', monthly: 10, per:'seat' },
     { name:'Grammarly Premium', monthly: 13, per:'seat' },
+    { name:'Cursor AI', monthly: 20, per:'seat' },
+    { name:'Perplexity Pro', monthly: 20, per:'flat' },
   ];
   let html = '';
   let total = 0;
@@ -291,32 +326,31 @@ calc();
 <footer>
   <div class="container">
     <p><strong>AI Tool Alternative Finder</strong> &nbsp;·&nbsp; Hosted on <a href="https://pages.github.com">GitHub Pages</a> &nbsp;·&nbsp;
-    <a href="about/index.html">About</a> &nbsp;·&nbsp;
-    <a href="privacy/index.html">Privacy Policy</a> &nbsp;·&nbsp;
-    <a href="contact/index.html">Contact</a> &nbsp;·&nbsp;
-    <a href="changelog/index.html">Changelog</a> &nbsp;·&nbsp;
-    <a href="stats/index.html">Stats</a></p>
-    <p style="margin-top:8px">Updated April 04, 2026 &nbsp;·&nbsp; $0/month to operate &nbsp;·&nbsp; Content for informational purposes only</p>
+    <a href="../about/index.html">About</a> &nbsp;·&nbsp;
+    <a href="../privacy/index.html">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="../contact/index.html">Contact</a> &nbsp;·&nbsp;
+    <a href="../changelog/index.html">Changelog</a> &nbsp;·&nbsp;
+    <a href="../stats/index.html">Stats</a> &nbsp;·&nbsp;
+    <a href="../blog/index.html">Blog</a></p>
+    <p style="margin-top:8px">Updated April 13, 2026 &nbsp;·&nbsp; $0/month to operate &nbsp;·&nbsp; Content for informational purposes only</p>
   </div>
 </footer>
 <script>
-  // Filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const cat = btn.dataset.cat;
-      document.querySelectorAll('.card').forEach(card => {
+      document.querySelectorAll('.card[data-cat]').forEach(card => {
         card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
       });
     });
   });
-  // Search
   const searchBar = document.querySelector('.search-bar');
   if (searchBar) {
     searchBar.addEventListener('input', () => {
       const q = searchBar.value.toLowerCase();
-      document.querySelectorAll('.card').forEach(card => {
+      document.querySelectorAll('.card[data-cat]').forEach(card => {
         card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
       });
     });
