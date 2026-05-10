@@ -1,54 +1,95 @@
-# 🤖 AI Tool Alternative Finder
+# 🤖 AI Tool Alternative Finder — v2 (AI-Generated Pipeline)
 
-Automatically compares paid AI tools to free/cheaper alternatives. AI-analyzed, self-updating, **$0/month to run**.
+Compares paid AI tools to free alternatives. Content AI-written by Groq (Llama 3.3). $0/month to run.
 
-Live site: https://aiopentec.github.io/ai-tool-alternative-finder
-
-## What's inside
-
-- **33 comparisons** across 5 categories (AI Writing, Image Generation, Coding, Voice/Audio, Video, APIs)
-- Individual comparison pages with pricing tables, verdict boxes, and step-by-step migration guides
-- Interactive savings calculator — enter your seat count, see exact savings
-- Daily auto-update via GitHub Actions
-- Sitemap auto-submitted for SEO
-
-## Categories
-
-| Category | Tools Covered |
-|---|---|
-| ✍️ AI Writing & Chat | ChatGPT Plus, Jasper, Copy.ai, Grammarly, Notion AI, Writesonic, Perplexity |
-| 🎨 AI Image Generation | Midjourney, DALL-E 3, Adobe Firefly, Canva AI, Runway ML |
-| 💻 AI Coding | GitHub Copilot, Cursor AI, Tabnine, Replit AI |
-| 🎤 AI Voice & Audio | ElevenLabs, Murf, Descript, Otter.ai, Adobe Podcast |
-| 📹 AI Video | Synthesia, Pictory, InVideo AI |
-| 💬 AI APIs | OpenAI API, Anthropic API — vs Ollama, Groq, Together AI, Fireworks |
-
-## Run locally
-
-```bash
-git clone https://github.com/aiopentec/ai-tool-alternative-finder
-cd ai-tool-alternative-finder
-python scripts/build.py
-# Open index.html in your browser
-```
+**Live site:** https://aiopentec.github.io/ai-tool-alternative-finder
 
 ## How it works
 
-1. `scripts/build.py` generates all HTML from a Python data dictionary
-2. GitHub Actions runs the build daily (`cron: '0 6 * * *'`)
-3. Generated files are committed back to `main` branch
-4. GitHub Pages serves the `main` branch automatically
+```
+data/tool_pairs.json          ← source of truth: 80 tool pairs
+        ↓
+scripts/generate.py           ← calls Groq API, writes rich JSON
+        ↓
+.cache/comparisons/*.json     ← one file per comparison (cached)
+        ↓
+scripts/build.py              ← generates all HTML pages
+        ↓
+GitHub Pages                  ← serves the site
+```
 
-## Deploy to GitHub Pages
+The pipeline runs daily via GitHub Actions. Only new/missing comparisons
+are regenerated — existing cached files are reused. Total API cost: ~$0
+(Groq free tier handles ~80 comparisons in a single run).
 
-1. Fork or create repo on GitHub
-2. Go to **Settings → Pages → Source: Deploy from branch → main / (root)**
-3. Push to `main` — the Action builds and deploys automatically
+## Local development
 
-## Adding new comparisons
+```bash
+# Build with hardcoded fallback data (no API key needed)
+python scripts/build.py
 
-Edit the `COMPARISONS` list in `scripts/build.py` and add a new dictionary following the existing schema. The build generates all pages and updates the sitemap automatically.
+# Generate AI content for all 80 tool pairs
+export GROQ_API_KEY=gsk_your_key_here
+python scripts/generate.py
+
+# Generate only new pairs (skips cached)
+python scripts/generate.py
+
+# Force regenerate everything
+python scripts/generate.py --force
+
+# Generate just one pair
+python scripts/generate.py --slug chatgpt-plus-vs-openrouter
+
+# Test first 5 pairs only
+python scripts/generate.py --limit 5
+
+# Check what data source build.py will use
+python scripts/build.py --check
+```
+
+## Setup
+
+1. Fork this repo
+2. Add `GROQ_API_KEY` as a GitHub Actions secret (Settings → Secrets → Actions)
+3. Enable GitHub Pages (Settings → Pages → Deploy from branch → main)
+4. Run the workflow manually once (Actions → Run workflow)
+
+## Adding new tool pairs
+
+Edit `data/tool_pairs.json` and add a new entry:
+
+```json
+{
+  "slug": "toolname-vs-alternative",
+  "category": "AI Coding",
+  "category_emoji": "💻",
+  "paid_tool": "Tool Name",
+  "paid_price": "$X/month",
+  "paid_url": "https://tool.com",
+  "free_tool": "Free Alternative",
+  "free_price": "Free",
+  "free_url": "https://free-tool.com",
+  "github_repo": "owner/repo"
+}
+```
+
+The pipeline auto-generates the comparison content on next run.
+
+## File structure
+
+```
+data/
+  tool_pairs.json           ← edit this to add comparisons
+scripts/
+  generate.py               ← Groq API → .cache/comparisons/
+  build.py                  ← .cache/comparisons/ → HTML pages
+.cache/
+  comparisons/              ← AI-generated JSON (committed to repo)
+.github/
+  workflows/
+    pipeline.yml            ← daily Generate → Build → Push
+```
 
 ---
-
-$0/month to operate · Hosted on GitHub Pages · Auto-updated daily
+$0/month · GitHub Pages · Groq API (free tier) · Daily auto-update

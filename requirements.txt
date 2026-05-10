@@ -1,3 +1,1 @@
-# AI Tool Alternative Finder
-# Pure Python stdlib — no external packages required.
-# The build script uses only: os, json, datetime
+requests
