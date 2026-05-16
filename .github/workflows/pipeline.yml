@@ -1,109 +1,95 @@
 name: Generate & Build AI Tool Alternative Finder
 
 on:
-  push:
-    branches: [ main ]
   schedule:
-    - cron: '0 6 * * *'       # Daily at 6 AM UTC
+    - cron: '0 6 * * *'   # daily at 6 AM UTC
   workflow_dispatch:
     inputs:
-      force_regenerate:
-        description: 'Force regenerate all comparisons (ignore cache)'
+      batch_index:
+        description: 'Batch index to generate (1–8, or blank for all missing)'
+        required: false
+        default: ''
+      force_rebuild:
+        description: 'Force regenerate all comparisons even if cached'
         required: false
         default: 'false'
-        type: choice
-        options: ['false', 'true']
-      limit:
-        description: 'Only generate N comparisons (0 = all). Useful for testing.'
-        required: false
-        default: '0'
 
 permissions:
   contents: write
-
-# ─────────────────────────────────────────────────────────────────────────────
-# JOB 1 — GENERATE
-# Calls Groq API to write comparison content for any new/missing tool pairs.
-# Skips pairs that are already cached unless force_regenerate=true.
-# ─────────────────────────────────────────────────────────────────────────────
+  pages: write
 
 jobs:
   generate:
-    name: Generate Comparisons
+    name: Generate Comparison Content
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
 
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install -r requirements.txt
 
-      - name: Show cache status before generation
-        run: |
-          echo "=== Cached comparisons before generation ==="
-          if [ -d ".cache/comparisons" ]; then
-            COUNT=$(ls .cache/comparisons/*.json 2>/dev/null | wc -l)
-            echo "Found $COUNT cached comparison files"
-            ls .cache/comparisons/ | head -20
-          else
-            echo "No cache directory found — full generation required"
-          fi
+      - name: Restore comparison cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/comparisons
+          key: comparisons-${{ hashFiles('data/tool_pairs.json') }}-${{ github.run_number }}
+          restore-keys: |
+            comparisons-${{ hashFiles('data/tool_pairs.json') }}-
+            comparisons-
 
-      - name: Generate comparisons
+      - name: Generate comparisons (batch mode)
+        if: ${{ github.event.inputs.batch_index != '' }}
         env:
-          GROQ_API_KEY:   ${{ secrets.GROQ_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          FORCE_FLAG=""
-          LIMIT_FLAG=""
+          python scripts/generate.py --index ${{ github.event.inputs.batch_index }}
 
-          if [ "${{ github.event.inputs.force_regenerate }}" = "true" ]; then
-            FORCE_FLAG="--force"
-            echo "Force regenerate mode enabled"
-          fi
-
-          if [ "${{ github.event.inputs.limit }}" != "0" ] && [ -n "${{ github.event.inputs.limit }}" ]; then
-            LIMIT_FLAG="--limit ${{ github.event.inputs.limit }}"
-            echo "Limit mode: ${{ github.event.inputs.limit }} comparisons"
-          fi
-
-          python scripts/generate.py $FORCE_FLAG $LIMIT_FLAG
-
-      - name: Show cache status after generation
+      - name: Generate comparisons (all missing)
+        if: ${{ github.event.inputs.batch_index == '' && github.event.inputs.force_rebuild != 'true' }}
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          echo "=== Cached comparisons after generation ==="
-          if [ -d ".cache/comparisons" ]; then
-            COUNT=$(ls .cache/comparisons/*.json 2>/dev/null | wc -l)
-            echo "Total: $COUNT comparison files"
-            ls .cache/comparisons/
-          else
-            echo "WARNING: .cache/comparisons does not exist"
-          fi
+          python scripts/generate.py
 
-      - name: Upload comparison cache as artifact
-        uses: actions/upload-artifact@v4
+      - name: Generate comparisons (force all)
+        if: ${{ github.event.inputs.force_rebuild == 'true' }}
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python scripts/generate.py --force
+
+      - name: Report cache status
+        run: |
+          CACHED=$(ls .cache/comparisons/*.json 2>/dev/null | wc -l || echo 0)
+          TOTAL=$(python -c "import json; d=json.load(open('data/tool_pairs.json')); print(len(d['pairs']))")
+          echo "✅ Cached: $CACHED / $TOTAL comparisons"
+
+      - name: Save comparison cache
+        uses: actions/cache@v4
         with:
-          name: comparisons-cache
-          path: .cache/comparisons/
-          if-no-files-found: warn
-          retention-days: 7
-
-# ─────────────────────────────────────────────────────────────────────────────
-# JOB 2 — BUILD & PUBLISH
-# Downloads the generated cache, runs build.py, commits and pushes all HTML.
-# Falls back to hardcoded data in build.py if no cache was generated.
-# ─────────────────────────────────────────────────────────────────────────────
+          path: .cache/comparisons
+          key: comparisons-${{ hashFiles('data/tool_pairs.json') }}-${{ github.run_number }}
 
   build:
-    name: Build & Publish Site
+    name: Build Static Site
     runs-on: ubuntu-latest
     needs: generate
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -111,65 +97,46 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
-      - name: Download comparison cache from Generate job
-        uses: actions/download-artifact@v4
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore comparison cache
+        uses: actions/cache@v4
         with:
-          name: comparisons-cache
-          path: .cache/comparisons/
-        continue-on-error: true    # Build continues with fallback data if no cache
-
-      - name: Check data source
-        run: python scripts/build.py --check
+          path: .cache/comparisons
+          key: comparisons-${{ hashFiles('data/tool_pairs.json') }}-${{ github.run_number }}
+          restore-keys: |
+            comparisons-${{ hashFiles('data/tool_pairs.json') }}-
+            comparisons-
 
       - name: Build site
-        run: python scripts/build.py
-
-      - name: Count generated files
+        env:
+          SITE_BASE_URL: 'https://aiopentec.github.io/ai-tool-alternative-finder'
+          GA_ID: ${{ secrets.GA_ID }}
+          ADSENSE_ID: ${{ secrets.ADSENSE_ID }}
         run: |
-          echo "=== Generated HTML files ==="
-          find . -name "index.html" | grep -v ".git" | wc -l
-          echo "=== Sitemap URLs ==="
-          grep "<url>" sitemap.xml | wc -l
+          python scripts/build.py --cache .cache/comparisons --out site
 
-      - name: Commit generated cache + site to repository
+      - name: Report build output
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          PAGES=$(find site -name '*.html' | wc -l)
+          echo "✅ Built $PAGES HTML pages"
+          echo "📁 Top-level contents:"
+          ls site/
 
-          # Stage generated cache (so it persists between runs)
-          git add .cache/comparisons/ 2>/dev/null || true
-
-          # Stage all HTML + sitemap + supporting files
-          git add -A
-
-          # Only commit if there are actual changes
-          if git diff --cached --quiet; then
-            echo "No changes to commit — site is already up to date"
-          else
-            COMP_COUNT=$(ls .cache/comparisons/*.json 2>/dev/null | wc -l || echo "fallback")
-            git commit -m "Auto-build: $(date -u '+%Y-%m-%d %H:%M UTC') — ${COMP_COUNT} comparisons"
-            echo "Committed successfully"
-          fi
-
-      - name: Push to GitHub
-        run: git push
-
-      - name: Pipeline summary
-        run: |
-          echo ""
-          echo "========================================="
-          echo "  PIPELINE COMPLETE"
-          echo "========================================="
-          echo "  Site URL: https://aiopentec.github.io/ai-tool-alternative-finder/"
-          CACHE_COUNT=$(ls .cache/comparisons/*.json 2>/dev/null | wc -l || echo "0")
-          echo "  Cached comparisons: $CACHE_COUNT"
-          HTML_COUNT=$(find . -name "index.html" | grep -v ".git" | wc -l)
-          echo "  HTML pages built: $HTML_COUNT"
-          SITEMAP_URLS=$(grep "<url>" sitemap.xml | wc -l)
-          echo "  Sitemap URLs: $SITEMAP_URLS"
-          echo "========================================="
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: gh-pages
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'chore: auto-rebuild site [${{ github.run_number }}]'
+          force_orphan: false

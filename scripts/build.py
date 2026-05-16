@@ -1,1111 +1,1662 @@
 #!/usr/bin/env python3
 """
 build.py — AI Tool Alternative Finder
-Generates the complete static site from comparison data.
+Reads .cache/comparisons/*.json and builds a complete static site.
 
-Data priority (highest to lowest):
-  1. .cache/comparisons/*.json  — AI-generated via generate.py
-  2. FALLBACK_COMPARISONS below — hardcoded, always available offline
+Ported from the osalfinder publish_github_pages.py template.
 
 Usage:
-    python scripts/build.py          # build site
-    python scripts/build.py --check  # show what data source will be used
+  python scripts/build.py
+  python scripts/build.py --cache .cache/comparisons --out site
 """
 
-import os
-import json
-import argparse
-from datetime import datetime, timezone
+import json, logging, os, re, shutil, argparse
+from datetime import datetime
 from pathlib import Path
+from typing import Dict, List, Optional
 
-# ─────────────────────────────────────────────────────────────────────────────
-# CONFIGURATION
-# ─────────────────────────────────────────────────────────────────────────────
+logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(levelname)-8s | %(message)s')
+logger = logging.getLogger(__name__)
 
-SITE_URL       = "https://aiopentec.github.io/ai-tool-alternative-finder"
-SITE_TITLE     = "AI Tool Alternative Finder"
-SITE_DESC      = "Discover free and cheaper alternatives to popular paid AI tools — with detailed comparisons. Save hundreds per year."
-GA_ID          = "G-FGB481RVVS"
-BUILD_DATE     = datetime.now(timezone.utc).strftime("%B %d, %Y")
-BUILD_DATE_ISO = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-CACHE_DIR      = Path(".cache/comparisons")
+# ── Config ────────────────────────────────────────────────────────────────────
+SITE_BASE_URL = os.getenv('SITE_BASE_URL', 'https://aiopentec.github.io/ai-tool-alternative-finder')
+GA_ID         = os.getenv('GA_ID', '')
+ADSENSE_ID    = os.getenv('ADSENSE_ID', '')
 
-# ─────────────────────────────────────────────────────────────────────────────
-# FALLBACK DATA — used when .cache/comparisons/ is empty or missing
-# Replace with generate.py output in production
-# ─────────────────────────────────────────────────────────────────────────────
+SITE_NAME  = 'AI Tool Alternative Finder'
+SITE_TAGLINE = 'Free AI Alternatives to Paid Tools'
 
-FALLBACK_COMPARISONS = [
-    {
-        "slug": "chatgpt-plus-vs-openrouter",
-        "category": "AI Writing & Chat",
-        "category_emoji": "✍️",
-        "paid_tool": "ChatGPT Plus",
-        "paid_price": "$20/month",
-        "paid_url": "https://chat.openai.com",
-        "free_tool": "OpenRouter",
-        "free_price": "Free tier / pay-per-use",
-        "free_url": "https://openrouter.ai",
-        "github_repo": None,
-        "savings": "$20/month → Free tier available",
-        "verdict_switch": "OpenRouter is ideal for developers and power users who want access to 100+ models including free tiers of Llama 3, Mistral, Gemma, and more without a flat monthly fee.",
-        "verdict_stay": "ChatGPT Plus is best when you rely on GPT-4o's code interpreter, image generation (DALL-E), or the polished consumer UI with no setup required.",
-        "setup_difficulty": "Easy",
-        "setup_dots": "●●○○○",
-        "setup_time": "~5 mins",
-        "setup_method": "Browser-based",
-        "overview": "ChatGPT Plus is OpenAI's $20/month subscription offering priority access to GPT-4o, DALL-E 3, code interpreter, custom GPTs, and more. OpenRouter is a unified API router and web chat interface that gives you access to 100+ AI models from multiple providers — many completely free — including GPT-4o, Claude 3.5, Llama 3.1, Mistral, and Gemini.",
-        "key_differences": [
-            "Cost: ChatGPT Plus is $20/month flat; OpenRouter has free model tiers and pay-per-token pricing",
-            "Model variety: OpenRouter routes to 100+ models across 20+ providers; ChatGPT Plus is OpenAI-only",
-            "Free models: OpenRouter hosts Llama 3.1, Mistral 7B, Gemma 2 and more at $0",
-            "API access: OpenRouter provides an OpenAI-compatible API endpoint; ChatGPT Plus is a consumer UI",
-            "Context length: Many OpenRouter models offer 128K+ context windows",
-        ],
-        "pricing_table": {
-            "headers": ["Aspect", "ChatGPT Plus", "OpenRouter"],
-            "rows": [
-                ["Base pricing", "$20/month", "Free tier available"],
-                ["GPT-4o access", "✅ Included", "✅ Pay-per-token"],
-                ["Free models", "❌", "✅ Llama 3.1, Mistral, Gemma"],
-                ["API access", "❌ Separate billing", "✅ Included"],
-                ["Model variety", "OpenAI only", "100+ models"],
-            ]
-        },
-        "migration": "Sign up at openrouter.ai (free). In the Chat tab, select a free model like meta-llama/llama-3.1-8b-instruct:free. For API use, replace your OpenAI base URL with https://openrouter.ai/api/v1 and use your OpenRouter API key — the API is fully OpenAI-compatible.",
-        "related": ["chatgpt-plus-vs-mistral-free", "openai-api-vs-ollama"],
-    },
-    {
-        "slug": "github-copilot-vs-codeium",
-        "category": "AI Coding",
-        "category_emoji": "💻",
-        "paid_tool": "GitHub Copilot",
-        "paid_price": "$10–$19/month",
-        "paid_url": "https://github.com/features/copilot",
-        "free_tool": "Codeium",
-        "free_price": "Free",
-        "free_url": "https://codeium.com",
-        "github_repo": None,
-        "savings": "$10–$19/month → Free",
-        "verdict_switch": "Codeium's free tier provides unlimited AI code completions, chat, and search across 70+ languages and 40+ editors — matching GitHub Copilot's core functionality at $0.",
-        "verdict_stay": "GitHub Copilot's native GitHub integration, pull request summaries, and deeper training on GitHub's massive code corpus give it an edge for enterprise teams.",
-        "setup_difficulty": "Easy",
-        "setup_dots": "●○○○○",
-        "setup_time": "~5 mins",
-        "setup_method": "IDE plugin",
-        "overview": "GitHub Copilot charges $10–$19/month for AI code completion, chat, and PR summaries. Codeium is a free AI coding assistant offering unlimited completions, in-editor chat, and codebase search — supporting 70+ languages with VS Code, JetBrains, Vim, and other editors.",
-        "key_differences": [
-            "Cost: GitHub Copilot is $10–$19/month; Codeium is completely free for individuals",
-            "Completions: Both offer real-time inline suggestions; quality is comparable for most tasks",
-            "GitHub integration: Copilot has native PR review summaries; Codeium does not",
-            "Privacy: Codeium has a strong no-training-on-user-code policy by default",
-            "Editor support: Both support all major editors; Codeium supports 40+ editors",
-        ],
-        "pricing_table": {
-            "headers": ["Aspect", "GitHub Copilot", "Codeium"],
-            "rows": [
-                ["Base pricing", "$10/month individual", "Free"],
-                ["Completions", "Unlimited", "Unlimited"],
-                ["In-editor chat", "✅", "✅ Free"],
-                ["PR summaries", "✅ GitHub native", "❌"],
-                ["Codebase search", "✅ Paid tier", "✅ Free"],
-            ]
-        },
-        "migration": "In VS Code, open Extensions (Ctrl+Shift+X), search 'Codeium', and install. Sign up at codeium.com for a free account and authenticate. Disable GitHub Copilot extension to avoid conflicts.",
-        "related": ["github-copilot-vs-continue-dev", "cursor-ai-vs-continue-dev"],
-    },
-    {
-        "slug": "openai-api-vs-ollama",
-        "category": "AI APIs & Infrastructure",
-        "category_emoji": "💬",
-        "paid_tool": "OpenAI API",
-        "paid_price": "$0.15–$15/1M tokens",
-        "paid_url": "https://platform.openai.com",
-        "free_tool": "Ollama",
-        "free_price": "Free (self-hosted)",
-        "free_url": "https://ollama.ai",
-        "github_repo": "ollama/ollama",
-        "savings": "API costs → $0",
-        "verdict_switch": "Ollama lets you run Llama 3.1, Mistral, Gemma 2, DeepSeek, and 100+ models locally with an OpenAI-compatible API — eliminating per-token cloud costs entirely for development and private use.",
-        "verdict_stay": "OpenAI API's GPT-4o and o1 models remain ahead on complex reasoning and long-context tasks. For production apps with quality SLAs, cloud APIs still win.",
-        "setup_difficulty": "Easy",
-        "setup_dots": "●●○○○",
-        "setup_time": "~5 mins",
-        "setup_method": "Native installer",
-        "overview": "OpenAI API charges per token used — ranging from $0.15/1M tokens for GPT-4o Mini to $15/1M for GPT-4o. Ollama is a free tool for running large language models locally, providing an OpenAI-compatible REST API on localhost — meaning you can switch existing apps from OpenAI to Ollama by changing one URL.",
-        "key_differences": [
-            "Cost: OpenAI API charges per token; Ollama is free (electricity only)",
-            "Privacy: All Ollama inference stays on your machine — no data sent externally",
-            "Model quality: GPT-4o leads on complex tasks; Llama 3.1 70B is competitive for most use cases",
-            "Setup: Ollama installs in 5 minutes; OpenAI API requires signup and billing setup",
-            "Internet required: Ollama runs fully offline; OpenAI requires internet",
-        ],
-        "pricing_table": {
-            "headers": ["Aspect", "OpenAI API", "Ollama"],
-            "rows": [
-                ["Pricing", "$0.15–$15/1M tokens", "Free"],
-                ["Hardware needed", "None (cloud)", "8GB+ RAM"],
-                ["API compatibility", "OpenAI standard", "OpenAI-compatible"],
-                ["Privacy", "Sent to OpenAI", "100% local"],
-                ["Offline use", "❌", "✅"],
-            ]
-        },
-        "migration": "1. Install Ollama: curl -fsSL https://ollama.ai/install.sh | sh (Linux/Mac) or download from ollama.ai (Windows). 2. Pull a model: ollama pull llama3.1. 3. In your app, change base_url from https://api.openai.com/v1 to http://localhost:11434/v1. No API key needed.",
-        "related": ["openai-api-vs-groq", "claude-api-vs-ollama"],
-    },
-    {
-        "slug": "midjourney-vs-stable-diffusion",
-        "category": "AI Image Generation",
-        "category_emoji": "🎨",
-        "paid_tool": "Midjourney",
-        "paid_price": "$10–$60/month",
-        "paid_url": "https://midjourney.com",
-        "free_tool": "Stable Diffusion (ComfyUI)",
-        "free_price": "Free (self-hosted)",
-        "free_url": "https://github.com/comfyanonymous/ComfyUI",
-        "github_repo": "comfyanonymous/ComfyUI",
-        "savings": "$10–$60/month → Free",
-        "verdict_switch": "Stable Diffusion with SDXL or Flux models generates comparable image quality to Midjourney at zero cost — you own all outputs, have no usage limits, and can run uncensored styles.",
-        "verdict_stay": "Midjourney's aesthetic quality is uniquely refined, especially for stylized art. Its prompt interpretation is more intuitive for non-technical users than ComfyUI's node-based workflow.",
-        "setup_difficulty": "Medium",
-        "setup_dots": "●●●○○",
-        "setup_time": "~30 mins",
-        "setup_method": "Local install (GPU recommended)",
-        "overview": "Midjourney is the market-leading AI image generator charging $10–$60/month for varying generation credits. Stable Diffusion is a free, open-source image generation model you can run locally with ComfyUI — generating unlimited images at no ongoing cost once hardware is set up.",
-        "key_differences": [
-            "Cost: Midjourney charges monthly; Stable Diffusion is free after hardware investment",
-            "Hardware: Stable Diffusion benefits from a GPU (8GB+ VRAM); Midjourney is cloud-based",
-            "Privacy: Local SD generates images never sent to any server; Midjourney stores all generations",
-            "Customization: SD supports LoRA models, ControlNet, inpainting; Midjourney is prompt-only",
-            "Image ownership: Midjourney has complex ToS; local SD output is fully yours",
-        ],
-        "pricing_table": {
-            "headers": ["Aspect", "Midjourney", "Stable Diffusion"],
-            "rows": [
-                ["Base pricing", "$10–$60/month", "Free"],
-                ["GPU required", "❌ Cloud-based", "✅ Recommended"],
-                ["Generations", "200–unlimited/month", "Unlimited"],
-                ["Image ownership", "Check ToS", "100% yours"],
-                ["Style control", "Prompts + params", "LoRA, ControlNet, etc"],
-            ]
-        },
-        "migration": "1. Install Python 3.10+. 2. Clone ComfyUI: git clone https://github.com/comfyanonymous/ComfyUI. 3. Install requirements: pip install -r requirements.txt. 4. Download a model (e.g., Flux Schnell from HuggingFace) into models/checkpoints/. 5. Run: python main.py. 6. Open http://localhost:8188.",
-        "related": ["dalle3-vs-stable-diffusion", "adobe-firefly-vs-stable-diffusion"],
-    },
-    {
-        "slug": "elevenlabs-vs-coqui-tts",
-        "category": "AI Voice & Audio",
-        "category_emoji": "🎤",
-        "paid_tool": "ElevenLabs",
-        "paid_price": "$5–$99/month",
-        "paid_url": "https://elevenlabs.io",
-        "free_tool": "Coqui TTS (XTTS)",
-        "free_price": "Free (self-hosted)",
-        "free_url": "https://github.com/coqui-ai/TTS",
-        "github_repo": "coqui-ai/TTS",
-        "savings": "$5–$99/month → Free",
-        "verdict_switch": "Coqui TTS generates high-quality, expressive text-to-speech locally — including voice cloning from short samples — at zero ongoing cost and with full data privacy.",
-        "verdict_stay": "ElevenLabs' voice quality, especially for emotional range, is still industry-leading. Its streaming API and pre-made voice library make it much easier for production use.",
-        "setup_difficulty": "Medium",
-        "setup_dots": "●●●○○",
-        "setup_time": "~15 mins",
-        "setup_method": "Python pip",
-        "overview": "ElevenLabs is the premium text-to-speech and voice cloning service charging $5–$99/month based on character limits. Coqui TTS is an open-source TTS library with 17+ models including XTTS — which supports voice cloning from a short audio sample — running entirely on your own hardware.",
-        "key_differences": [
-            "Cost: ElevenLabs is $5–$99/month; Coqui TTS is free and self-hosted",
-            "Voice quality: ElevenLabs leads for emotional realism; XTTS is competitive for natural speech",
-            "Voice cloning: Both support cloning; ElevenLabs needs 1 min sample, XTTS works with 6 seconds",
-            "Character limits: ElevenLabs caps by plan; Coqui has no limits on local hardware",
-            "Privacy: All Coqui processing stays on your machine; ElevenLabs is cloud-only",
-        ],
-        "pricing_table": {
-            "headers": ["Aspect", "ElevenLabs", "Coqui TTS (XTTS)"],
-            "rows": [
-                ["Pricing", "$5–$99/month", "Free"],
-                ["Voice cloning", "✅ 1 min sample", "✅ 6 sec sample"],
-                ["Character limit", "30K–2M/month", "Unlimited"],
-                ["Languages", "29+", "17+"],
-                ["Privacy", "Cloud", "100% local"],
-            ]
-        },
-        "migration": "pip install TTS. Generate speech: tts --text 'Hello world' --model_name tts_models/multilingual/multi-dataset/xtts_v2 --out_path output.wav. For voice cloning: add --speaker_wav your_voice.wav --language_idx en.",
-        "related": ["murf-ai-vs-piper-tts", "otter-ai-vs-whisper"],
-    },
-]
+# ── Category metadata ─────────────────────────────────────────────────────────
+CATEGORY_ICONS = {
+    'text-generation':  '📝',
+    'code-assistance':  '💻',
+    'image-generation': '🎨',
+    'voice-ai':         '🎤',
+    'video-ai':         '🎬',
+    'research-ai':      '🔍',
+    'audio-ai':         '🎵',
+    'translation-ai':   '🌐',
+    'productivity-ai':  '📊',
+    'ai-api':           '⚡',
+}
 
-# ─────────────────────────────────────────────────────────────────────────────
-# LOAD COMPARISONS — cache first, fallback second
-# ─────────────────────────────────────────────────────────────────────────────
+CATEGORY_LABELS = {
+    'text-generation':  'Text & Writing AI',
+    'code-assistance':  'Code Assistance',
+    'image-generation': 'Image Generation',
+    'voice-ai':         'Voice & TTS',
+    'video-ai':         'Video AI',
+    'research-ai':      'Research & Search AI',
+    'audio-ai':         'Audio & Transcription',
+    'translation-ai':   'Translation AI',
+    'productivity-ai':  'Productivity AI',
+    'ai-api':           'AI APIs & Backends',
+}
 
-def load_comparisons():
-    """Load from .cache/comparisons/ if available, else use FALLBACK_COMPARISONS."""
-    if CACHE_DIR.exists():
-        files = sorted(CACHE_DIR.glob("*.json"))
-        if files:
-            loaded = []
-            errors = []
-            for f in files:
-                try:
-                    data = json.loads(f.read_text(encoding="utf-8"))
-                    # Validate minimally
-                    if data.get("slug") and data.get("paid_tool") and data.get("free_tool"):
-                        loaded.append(data)
-                    else:
-                        errors.append(f.name)
-                except Exception as e:
-                    errors.append(f"{f.name}: {e}")
-            if errors:
-                print(f"  ⚠️  Skipped {len(errors)} malformed cache files: {errors[:3]}")
-            if loaded:
-                print(f"  📦 Loaded {len(loaded)} comparisons from .cache/comparisons/")
-                return loaded
+CATEGORY_COLORS = {
+    'text-generation':  '#3498DB',
+    'code-assistance':  '#9B59B6',
+    'image-generation': '#E91E63',
+    'voice-ai':         '#E67E22',
+    'video-ai':         '#E74C3C',
+    'research-ai':      '#2ECC71',
+    'audio-ai':         '#1ABC9C',
+    'translation-ai':   '#F39C12',
+    'productivity-ai':  '#8E44AD',
+    'ai-api':           '#2980B9',
+}
 
-    print(f"  📋 Using {len(FALLBACK_COMPARISONS)} hardcoded fallback comparisons")
-    print(f"     (Run 'python scripts/generate.py' to generate AI-written content)")
-    return FALLBACK_COMPARISONS
+# SimpleIcons slugs for tool logos
+SIMPLEICONS_SLUGS = {
+    'ChatGPT Plus': 'openai',
+    'Claude Pro': 'anthropic',
+    'Gemini Advanced': 'google',
+    'Jasper AI': 'jasper',
+    'GitHub Copilot': 'github',
+    'Cursor Pro': 'cursor',
+    'Midjourney': 'midjourney',
+    'DALL-E 3': 'openai',
+    'Adobe Firefly': 'adobe',
+    'Runway ML': 'runwayml',
+    'ElevenLabs': 'elevenlabs',
+    'Descript': 'descript',
+    'Otter.ai': 'otter',
+    'DeepL Pro': 'deepl',
+    'Notion AI': 'notion',
+    'Microsoft Copilot 365': 'microsoft',
+    'OpenAI API': 'openai',
+    'Grammarly Premium': 'grammarly',
+    'Open WebUI': 'openai',
+    'Ollama': 'ollama',
+    'Canva AI (Magic Studio)': 'canva',
+    'Whisper': 'openai',
+    'GitHub': 'github',
+}
+
+SETUP_DIFFICULTY = {
+    'open-webui':              {'score': 2, 'label': 'Easy',       'time': '~15 mins',  'method': 'Docker'},
+    'ollama':                  {'score': 1, 'label': 'Very Easy',  'time': '~5 mins',   'method': 'Installer'},
+    'jan-ai':                  {'score': 1, 'label': 'Very Easy',  'time': '~5 mins',   'method': 'Desktop app'},
+    'lm-studio':               {'score': 1, 'label': 'Very Easy',  'time': '~5 mins',   'method': 'Desktop app'},
+    'anything-llm':            {'score': 2, 'label': 'Easy',       'time': '~15 mins',  'method': 'Docker'},
+    'privateGPT':              {'score': 2, 'label': 'Easy',       'time': '~20 mins',  'method': 'Docker'},
+    'morphic':                 {'score': 3, 'label': 'Moderate',   'time': '~30 mins',  'method': 'Docker'},
+    'farfalle':                {'score': 3, 'label': 'Moderate',   'time': '~30 mins',  'method': 'Docker'},
+    'continue-dev':            {'score': 1, 'label': 'Very Easy',  'time': '~5 mins',   'method': 'VS Code extension'},
+    'codeium':                 {'score': 1, 'label': 'Very Easy',  'time': '~3 mins',   'method': 'IDE extension'},
+    'tabby':                   {'score': 3, 'label': 'Moderate',   'time': '~30 mins',  'method': 'Docker'},
+    'void-editor':             {'score': 1, 'label': 'Very Easy',  'time': '~5 mins',   'method': 'Desktop app'},
+    'aider':                   {'score': 2, 'label': 'Easy',       'time': '~10 mins',  'method': 'pip install'},
+    'stable-diffusion-webui':  {'score': 3, 'label': 'Moderate',   'time': '~45 mins',  'method': 'Python/Git'},
+    'comfyui':                 {'score': 3, 'label': 'Moderate',   'time': '~30 mins',  'method': 'Python/Git'},
+    'fooocus':                 {'score': 2, 'label': 'Easy',       'time': '~20 mins',  'method': 'Python/Git'},
+    'invokeai':                {'score': 2, 'label': 'Easy',       'time': '~20 mins',  'method': 'Installer'},
+    'bark':                    {'score': 2, 'label': 'Easy',       'time': '~15 mins',  'method': 'pip install'},
+    'coqui-tts':               {'score': 2, 'label': 'Easy',       'time': '~10 mins',  'method': 'pip install'},
+    'piper-tts':               {'score': 1, 'label': 'Very Easy',  'time': '~5 mins',   'method': 'Binary download'},
+    'kokoro':                  {'score': 2, 'label': 'Easy',       'time': '~10 mins',  'method': 'pip install'},
+    'whisper':                 {'score': 1, 'label': 'Very Easy',  'time': '~5 mins',   'method': 'pip install'},
+    'whisperx':                {'score': 2, 'label': 'Easy',       'time': '~10 mins',  'method': 'pip install'},
+    'libreTranslate':          {'score': 2, 'label': 'Easy',       'time': '~10 mins',  'method': 'Docker'},
+    'argos-translate':         {'score': 1, 'label': 'Very Easy',  'time': '~5 mins',   'method': 'pip install'},
+    'languagetool':            {'score': 2, 'label': 'Easy',       'time': '~10 mins',  'method': 'Docker / extension'},
+    'localai':                 {'score': 2, 'label': 'Easy',       'time': '~15 mins',  'method': 'Docker'},
+    'litellm':                 {'score': 2, 'label': 'Easy',       'time': '~10 mins',  'method': 'pip install'},
+    'stable-video':            {'score': 3, 'label': 'Moderate',   'time': '~45 mins',  'method': 'Python/Git'},
+    'wan-video':               {'score': 3, 'label': 'Moderate',   'time': '~30 mins',  'method': 'Python/Git'},
+    'appflowy-ai':             {'score': 1, 'label': 'Very Easy',  'time': '~5 mins',   'method': 'Desktop app'},
+}
+
+DIFFICULTY_COLORS = {
+    1: {'bg': '#EAFAF1', 'border': '#A9DFBF', 'text': '#1A7A3F', 'stars': '⭐'},
+    2: {'bg': '#EBF5FB', 'border': '#AED6F1', 'text': '#1F5C99', 'stars': '⭐⭐'},
+    3: {'bg': '#FEF9E7', 'border': '#F9E79F', 'text': '#B7770D', 'stars': '⭐⭐⭐'},
+    4: {'bg': '#FDEDEC', 'border': '#F5B7B1', 'text': '#C0392B', 'stars': '⭐⭐⭐⭐'},
+}
+
+FREE_RATINGS = {
+    'open-webui': 4.7, 'ollama': 4.8, 'jan-ai': 4.5, 'lm-studio': 4.6,
+    'anything-llm': 4.5, 'privateGPT': 4.3, 'morphic': 4.2, 'farfalle': 4.0,
+    'continue-dev': 4.6, 'codeium': 4.5, 'tabby': 4.3, 'void-editor': 4.4,
+    'aider': 4.7, 'stable-diffusion-webui': 4.5, 'comfyui': 4.6, 'fooocus': 4.4,
+    'invokeai': 4.5, 'bark': 4.2, 'coqui-tts': 4.4, 'piper-tts': 4.3,
+    'kokoro': 4.6, 'whisper': 4.8, 'whisperx': 4.7, 'libreTranslate': 4.1,
+    'argos-translate': 4.0, 'languagetool': 4.3, 'localai': 4.4, 'litellm': 4.5,
+    'stable-video': 4.1, 'wan-video': 4.3, 'appflowy-ai': 4.5,
+}
+
+STAY_IF_CONTENT = {
+    'open-webui':             "you need GPT-4o's frontier reasoning, real-time web browsing, or the ChatGPT plugin ecosystem, and don't want to manage any local infrastructure.",
+    'ollama':                 "you need cloud reliability, mobile apps, or access to proprietary frontier models like GPT-4o or Claude 3.5 Sonnet from any device.",
+    'jan-ai':                 "you need real-time web access, the latest frontier models, or seamless mobile access from your phone.",
+    'lm-studio':              "you need cloud sync across devices, access to GPT-4o-level reasoning, or a fully managed service with zero local setup.",
+    'anything-llm':           "your use case requires the absolute best summarisation quality with GPT-4o, or you cannot run any local server infrastructure.",
+    'privateGPT':             "you need real-time information retrieval or a fully managed RAG solution with vendor SLA support.",
+    'morphic':                "you need Perplexity Pro's answer quality, real-time news access, or the polished mobile app experience.",
+    'farfalle':               "you want Perplexity's seamless interface, mobile apps, and the highest quality AI answers without any self-hosting.",
+    'continue-dev':           "your team relies heavily on GitHub Copilot's deep GitHub integration, ghost text predictions, and the Copilot Chat sidebar.",
+    'codeium':                "you need GitHub Copilot's tight GitHub PR review integration, enterprise SSO, and Copilot's brand recognition.",
+    'tabby':                  "you want zero infrastructure to manage, the best model quality for complex completions, and GitHub's enterprise compliance.",
+    'void-editor':            "you need Cursor's most advanced agentic features, the polished AI diff view, or deep Claude integration within the editor.",
+    'aider':                  "you prefer a fully GUI-based workflow, need real-time collaboration features, or want the most advanced AI-driven code editing UI.",
+    'stable-diffusion-webui': "you don't have a GPU, want Midjourney's consistent aesthetic without any setup, or rely on Midjourney's active community for inspiration.",
+    'comfyui':                "you want Midjourney's ease of use and consistent artistic quality without needing to understand node-based pipelines.",
+    'fooocus':                "you need Midjourney's community feed, upscaling features, and consistently cutting-edge model updates without any local setup.",
+    'invokeai':               "you want zero setup and Midjourney's signature aesthetic without managing models, checkpoints, or GPU hardware.",
+    'bark':                   "you need ElevenLabs' widest language support, real-time streaming, voice design studio, and a polished browser-based workflow.",
+    'coqui-tts':              "you need 32-language support, real-time voice generation, or ElevenLabs' professional dubbing and voice library features.",
+    'piper-tts':              "you need high-quality emotional voice synthesis, voice cloning from short clips, or a browser-based interface with no local setup.",
+    'kokoro':                 "you need ElevenLabs' extensive voice library, multilingual support beyond English, or a managed API with guaranteed uptime.",
+    'whisper':                "you need Descript's full transcript-based audio editing workflow, filler word removal, and collaborative podcast production.",
+    'whisperx':               "you need Otter.ai's real-time transcription, meeting bot integrations with Zoom/Teams, and automated meeting summary features.",
+    'libreTranslate':         "you need DeepL's best-in-class translation quality for high-stakes content like legal or marketing documents.",
+    'argos-translate':        "translation quality is mission-critical and you need DeepL's formality controls and native document translation features.",
+    'languagetool':           "you need Grammarly's full AI rewrites, tone detection, plagiarism checking, and the polished browser extension experience.",
+    'localai':                "you need GPT-4o's frontier reasoning, have latency-sensitive production workloads, or don't have GPU hardware for local inference.",
+    'litellm':                "you need the absolute latest OpenAI models, don't want to manage proxy infrastructure, or need ultra-low latency cloud inference.",
+    'stable-video':           "you need Runway's professional film-quality generation, advanced camera controls, and a polished browser-based workflow.",
+    'wan-video':              "you need Luma Dream Machine's ease of use, the most realistic motion quality, and a fully managed service with no GPU required.",
+    'appflowy-ai':            "you need Notion AI's deepest database integrations, the most polished AI editing experience, or real-time collaboration with clients.",
+}
 
 
-COMPARISONS = load_comparisons()
+# ── Utility functions ─────────────────────────────────────────────────────────
+def get_tool_logo_html(tool_name: str, size: int = 26) -> str:
+    slug = SIMPLEICONS_SLUGS.get(tool_name, '')
+    if slug:
+        return (
+            f'<img class="tool-logo" '
+            f'src="https://cdn.simpleicons.org/{slug}" '
+            f'width="{size}" height="{size}" '
+            f'alt="{tool_name} logo" loading="lazy" '
+            f'onerror="this.style.display=\'none\'">'
+        )
+    initial = tool_name[0].upper() if tool_name else '?'
+    return f'<span class="tool-logo-fallback" aria-hidden="true">{initial}</span>'
 
-# ─────────────────────────────────────────────────────────────────────────────
-# DERIVED LOOKUPS
-# ─────────────────────────────────────────────────────────────────────────────
 
-CATEGORIES = sorted(list(set(c["category"] for c in COMPARISONS)))
+def get_ga_snippet() -> str:
+    if not GA_ID:
+        return ''
+    return f"""<!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){{dataLayer.push(arguments);}}
+    gtag('js', new Date());
+    gtag('{GA_ID}');
+  </script>"""
 
-def category_count(cat):
-    return sum(1 for c in COMPARISONS if c["category"] == cat)
 
-def paid_key(c):
-    return c["slug"].split("-vs-")[0]
+def get_adsense_snippet() -> str:
+    if not ADSENSE_ID:
+        return '<!-- AdSense disabled -->'
+    return f'<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE_ID}" crossorigin="anonymous"></script>'
 
-def free_key(c):
-    return "-vs-".join(c["slug"].split("-vs-")[1:])
 
-# ─────────────────────────────────────────────────────────────────────────────
-# FILE I/O
-# ─────────────────────────────────────────────────────────────────────────────
+def get_adsense_unit() -> str:
+    if not ADSENSE_ID:
+        return ''
+    return f"""<div class="ad-unit" style="text-align:center;margin:1.5rem 0;">
+    <ins class="adsbygoogle" style="display:block" data-ad-client="{ADSENSE_ID}"
+         data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script>
+  </div>"""
 
-def ensure_dir(path):
-    if path:
-        os.makedirs(path, exist_ok=True)
 
-def write(path, content):
-    ensure_dir(os.path.dirname(path))
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(content)
-    print(f"  ✓  {path}")
+def markdown_to_html(md: str) -> str:
+    html = md
+    html = re.sub(r'^#### (.+)$', r'<h4>\1</h4>', html, flags=re.MULTILINE)
+    html = re.sub(r'^### (.+)$',  r'<h3>\1</h3>', html, flags=re.MULTILINE)
+    html = re.sub(r'^## (.+)$',   r'<h2>\1</h2>', html, flags=re.MULTILINE)
+    html = re.sub(r'^# (.+)$',    r'<h1>\1</h1>', html, flags=re.MULTILINE)
+    html = re.sub(r'\*\*\*(.+?)\*\*\*', r'<strong><em>\1</em></strong>', html)
+    html = re.sub(r'\*\*(.+?)\*\*',     r'<strong>\1</strong>', html)
+    html = re.sub(r'\*(.+?)\*',         r'<em>\1</em>', html)
+    html = re.sub(r'`(.+?)`', r'<code>\1</code>', html)
+    html = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank" rel="noopener">\1</a>', html)
+    html = re.sub(r'^> (.+)$', r'<blockquote>\1</blockquote>', html, flags=re.MULTILINE)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# SHARED CSS
-# ─────────────────────────────────────────────────────────────────────────────
+    # Tables
+    lines = html.split('\n')
+    result = []
+    in_table = False
+    header_done = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith('|') and stripped.endswith('|'):
+            if not in_table:
+                result.append('<div class="table-wrapper"><table>')
+                in_table = True
+                header_done = False
+            if re.match(r'^\|[\s\-|]+\|$', stripped):
+                header_done = True
+                continue
+            cells = [c.strip() for c in stripped.strip('|').split('|')]
+            if not header_done:
+                result.append('<thead><tr>' + ''.join(f'<th>{c}</th>' for c in cells) + '</tr></thead><tbody>')
+                header_done = True
+            else:
+                result.append('<tr>' + ''.join(f'<td>{c}</td>' for c in cells) + '</tr>')
+        else:
+            if in_table:
+                result.append('</tbody></table></div>')
+                in_table = False
+                header_done = False
+            result.append(line)
+    if in_table:
+        result.append('</tbody></table></div>')
+    html = '\n'.join(result)
 
-CSS = """
-<style>
-  :root {
-    --bg: #0D1117; --surface: #161B22; --border: #30363D;
-    --text: #E6EDF3; --muted: #8B949E; --accent: #58A6FF;
-    --green: #3FB950; --yellow: #D29922; --red: #F85149; --radius: 8px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size: 15px; line-height: 1.6; }
-  a { color: var(--accent); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
-  nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 0; }
-  nav .container { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  nav .brand { font-weight: 700; font-size: 15px; color: var(--text); }
-  nav .brand:hover { text-decoration: none; }
-  header { padding: 48px 0 32px; text-align: center; }
-  header h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; }
-  header p { color: var(--muted); font-size: 1.05rem; max-width: 600px; margin: 0 auto; }
-  .stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
-  .stat { text-align: center; }
-  .stat .num { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
-  .stat .lbl { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-  .filters { margin: 24px 0 16px; display: flex; gap: 8px; flex-wrap: wrap; }
-  .filter-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all .15s; }
-  .filter-btn:hover, .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding-bottom: 48px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: border-color .15s, transform .15s; display: flex; flex-direction: column; }
-  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .card-cat { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
-  .card-tools { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-  .card-tools .tool { font-weight: 600; font-size: 14px; }
-  .card-tools .vs { color: var(--muted); font-size: 12px; }
-  .card-savings { font-size: 12px; color: var(--green); margin-bottom: 14px; }
-  .card .btn-row { display: flex; gap: 6px; margin-top: auto; }
-  .card a.btn { display: inline-block; background: var(--accent); color: #fff; padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; text-align: center; }
-  .card a.btn-alt { display: inline-block; background: rgba(63,185,80,.15); color: var(--green); padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; border: 1px solid rgba(63,185,80,.3); }
-  .card a.btn:hover, .card a.btn-alt:hover { opacity: 0.85; text-decoration: none; }
-  h2 { font-size: 1.4rem; margin: 32px 0 16px; }
-  h3 { font-size: 1.1rem; margin: 24px 0 10px; }
-  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; margin: 0 4px 4px 0; }
-  .badge-green { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); }
-  .badge-blue { background: rgba(88,166,255,.15); color: var(--accent); border: 1px solid rgba(88,166,255,.3); }
-  .badge-yellow { background: rgba(210,153,34,.15); color: var(--yellow); border: 1px solid rgba(210,153,34,.3); }
-  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
-  th { background: var(--surface); color: var(--muted); text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--border); }
-  td { padding: 9px 14px; border-bottom: 1px solid var(--border); }
-  tr:hover td { background: rgba(255,255,255,.02); }
-  .verdict-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin: 20px 0; }
-  .verdict-row { margin-bottom: 14px; }
-  .verdict-row:last-child { margin-bottom: 0; }
-  .verdict-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-  .verdict-switch .verdict-label { color: var(--green); }
-  .verdict-stay .verdict-label { color: var(--yellow); }
-  .hero-tools { display: flex; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin: 24px 0; flex-wrap: wrap; }
-  .hero-tool { flex: 1; min-width: 160px; }
-  .hero-tool .label { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
-  .hero-tool .name { font-size: 1.2rem; font-weight: 700; }
-  .hero-tool .price { font-size: 13px; color: var(--muted); margin-top: 4px; }
-  .hero-vs { font-size: 1.4rem; font-weight: 700; color: var(--border); }
-  ul.diffs { padding-left: 20px; }
-  ul.diffs li { margin-bottom: 8px; }
-  .migration-box { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); padding: 20px; margin: 20px 0; font-size: 14px; }
-  .migration-box pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 12px; overflow-x: auto; font-size: 13px; white-space: pre-wrap; }
-  .related { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
-  .related a { background: var(--surface); border: 1px solid var(--border); padding: 8px 14px; border-radius: 6px; font-size: 13px; }
-  .related a:hover { border-color: var(--accent); text-decoration: none; }
-  .alt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin: 20px 0; }
-  .alt-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: border-color .15s; }
-  .alt-card:hover { border-color: var(--green); }
-  .alt-card .alt-name { font-size: 1.1rem; font-weight: 700; color: var(--green); }
-  .alt-card .alt-price { font-size: 12px; color: var(--muted); }
-  .alt-card .alt-links { display: flex; gap: 8px; margin-top: auto; }
-  .alt-card .alt-links a { flex: 1; text-align: center; padding: 6px 10px; border-radius: 5px; font-size: 12px; font-weight: 600; }
-  .btn-compare { background: var(--accent); color: #fff !important; }
-  .btn-migrate { background: rgba(63,185,80,.15); color: var(--green) !important; border: 1px solid rgba(63,185,80,.3); }
-  .step-list { list-style: none; padding: 0; counter-reset: steps; }
-  .step-list li { counter-increment: steps; display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
-  .step-list li:last-child { border-bottom: none; }
-  .step-list li::before { content: counter(steps); background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
-  footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; font-size: 13px; color: var(--muted); }
-  footer a { color: var(--muted); }
-  .search-bar { width: 100%; max-width: 500px; margin: 16px auto 0; display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px 16px; font-size: 14px; }
-  .search-bar:focus { outline: none; border-color: var(--accent); }
-  @media (max-width: 600px) { header h1 { font-size: 1.5rem; } .hero-tools { flex-direction: column; } }
-</style>"""
+    # Lists
+    lines = html.split('\n')
+    out = []
+    in_ul = in_ol = False
+    for line in lines:
+        ul = re.match(r'^[-*] (.+)$', line)
+        ol = re.match(r'^\d+\. (.+)$', line)
+        if ul:
+            if not in_ul:
+                if in_ol: out.append('</ol>'); in_ol = False
+                out.append('<ul>'); in_ul = True
+            out.append(f'<li>{ul.group(1)}</li>')
+        elif ol:
+            if not in_ol:
+                if in_ul: out.append('</ul>'); in_ul = False
+                out.append('<ol>'); in_ol = True
+            out.append(f'<li>{ol.group(1)}</li>')
+        else:
+            if in_ul: out.append('</ul>'); in_ul = False
+            if in_ol: out.append('</ol>'); in_ol = False
+            out.append(line)
+    if in_ul: out.append('</ul>')
+    if in_ol: out.append('</ol>')
+    html = '\n'.join(out)
 
-GA_SNIPPET = f"""<script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','{GA_ID}');</script>"""
+    html = html.replace('---', '<hr>')
+    paras = re.split(r'\n{2,}', html)
+    wrapped = []
+    for p in paras:
+        p = p.strip()
+        if p and not re.match(r'^<(h[1-6]|ul|ol|table|div|blockquote|hr)', p):
+            p = f'<p>{p}</p>'
+        wrapped.append(p)
+    return '\n'.join(wrapped)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# NAV + FOOTER
-# ─────────────────────────────────────────────────────────────────────────────
 
-def nav(root=""):
-    return f"""<nav>
-  <div class="container">
-    <a href="{root}index.html" class="brand">🤖 AI Tool Alternative Finder</a>
-    <a href="{root}savings-calculator/index.html" style="font-size:13px;color:var(--muted)">💰 Calculator</a>
-    <a href="{root}changelog/index.html" style="font-size:13px;color:var(--muted)">📋 Changelog</a>
-    <a href="{root}stats/index.html" style="font-size:13px;color:var(--muted)">📊 Stats</a>
-    <a href="{root}blog/index.html" style="font-size:13px;color:var(--muted)">📝 Blog</a>
-    <a href="{root}about/index.html" style="font-size:13px;color:var(--muted)">About</a>
-  </div>
-</nav>"""
+# ── Shared CSS / design system (identical to osalfinder) ─────────────────────
+SHARED_CSS = """
+    :root {
+      --blue: #1F5C99; --blue-light: #2980B9; --blue-bg: #EBF4FA;
+      --green: #1A7A3F; --green-bg: #EAFAF1;
+      --category: CATEGORY_COLOR;
+      --bg: #F0F4F8; --card: #FFFFFF;
+      --text: #1A202C; --text-muted: #718096;
+      --border: #E2E8F0; --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    [data-theme="dark"] {
+      --bg: #0d1117; --card: #161b22; --border: #30363d;
+      --text: #e6edf3; --text-muted: #8b949e;
+      --blue: #58a6ff; --blue-light: #79b8ff; --blue-bg: #0c2d4a;
+      --green: #3fb950; --green-bg: #1b2d1f;
+    }
+    [data-theme="dark"] body { background: var(--bg); color: var(--text); }
+    [data-theme="dark"] .hero { background: linear-gradient(135deg, #0a1628 0%, #0d2440 100%); }
+    [data-theme="dark"] .card { background: var(--card); border-color: var(--border); }
+    [data-theme="dark"] .card h2 { color: var(--blue); border-bottom-color: var(--blue-bg); }
+    [data-theme="dark"] .card p, [data-theme="dark"] .card li { color: #c9d1d9; }
+    [data-theme="dark"] thead th { background: #0c2d4a; }
+    [data-theme="dark"] tbody tr:nth-child(even) td { background: #1c2128; }
+    [data-theme="dark"] tbody td { border-bottom-color: #30363d; color: #c9d1d9; }
+    [data-theme="dark"] .verdict-box { background: var(--card); border-color: var(--blue); }
+    [data-theme="dark"] .related-link { background: #1c2128; border-color: #30363d; color: var(--blue); }
+    [data-theme="dark"] .related-link:hover { background: var(--blue); color: #0d1117; }
+    [data-theme="dark"] footer { background: #0d1117; border-top-color: #30363d; color: #8b949e; }
+    [data-theme="dark"] nav { background: #010409; }
+    [data-theme="dark"] .difficulty-card { background: var(--card); border-color: var(--border); }
+    [data-theme="dark"] .t-strip { background: #0f2318; border-left-color: #3fb950; }
+    [data-theme="dark"] .t-green { background: #152820; color: #3fb950; }
+    [data-theme="dark"] .t-amber { background: #2d2010; color: #d4a843; }
+    [data-theme="dark"] .t-body { color: #8b949e; }
+    [data-theme="dark"] .t-link { color: #58a6ff; }
+    [data-theme="dark"] .qb-tool { background: var(--card) !important; border-color: var(--border) !important; }
+    [data-theme="dark"] .qb-tool.paid { background: #2d1616 !important; border-color: #5a2020 !important; }
+    [data-theme="dark"] .qb-tool.paid .name { color: #f47067 !important; }
+    [data-theme="dark"] .qb-tool.free { background: #152820 !important; border-color: #1f4a2a !important; }
+    [data-theme="dark"] .qb-tool.free .name { color: #3fb950 !important; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+    a { color: var(--blue); }
+    nav { background: var(--blue); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    nav a { color: #fff; text-decoration: none; font-size: 0.9rem; opacity: 0.9; }
+    nav a:hover { opacity: 1; }
+    nav .sep { color: rgba(255,255,255,0.4); }
+    .hero { background: linear-gradient(135deg, var(--blue) 0%, var(--blue-light) 100%); color: #fff; padding: 3rem 1.5rem 2.5rem; text-align: center; }
+    .hero .category-badge { display: inline-block; background: var(--category); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.3rem 0.9rem; border-radius: 20px; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .hero h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 800; margin-bottom: 0.75rem; }
+    .hero .subtitle { opacity: 0.85; font-size: 1rem; max-width: 600px; margin: 0 auto 1.5rem; }
+    .hero-badges { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .hero-badge { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); padding: 0.35rem 0.9rem; border-radius: 20px; font-size: 0.82rem; backdrop-filter: blur(4px); }
+    .quick-bar { background: #fff; border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; }
+    .quick-bar-inner { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: center; text-align: center; }
+    .qb-tool { padding: 0.75rem; border-radius: 8px; border: 2px solid var(--border); }
+    .qb-tool.paid { border-color: #E74C3C22; background: #FDF2F2; }
+    .qb-tool.free { border-color: #1A7A3F22; background: var(--green-bg); }
+    .qb-tool .label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.2rem; }
+    .qb-tool .name { font-size: 1.1rem; font-weight: 800; }
+    .qb-tool.paid .name { color: #C0392B; }
+    .qb-tool.free .name { color: var(--green); }
+    .qb-tool .price { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .qb-tool .visit-btn { display: inline-block; margin-top: 0.5rem; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.78rem; font-weight: 600; text-decoration: none; }
+    .qb-tool.paid .visit-btn { background: #FDE8E8; color: #C0392B; }
+    .qb-tool.free .visit-btn { background: #D5F5E3; color: var(--green); }
+    .vs-badge { font-size: 1.3rem; font-weight: 900; color: var(--blue); }
+    .content { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+    .card { background: var(--card); border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .card h1 { display: none; }
+    .card h2 { font-size: 1.25rem; font-weight: 700; color: var(--blue); margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--blue-bg); }
+    .card h2:first-child { margin-top: 0; }
+    .card h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 1.25rem 0 0.5rem; }
+    .card p { margin: 0.5rem 0; }
+    .card ul, .card ol { margin: 0.5rem 0 0.75rem 1.5rem; }
+    .card li { margin: 0.35rem 0; }
+    .card blockquote { background: var(--blue-bg); border-left: 4px solid var(--blue); padding: 0.75rem 1rem; border-radius: 0 6px 6px 0; margin: 0.75rem 0; font-size: 0.9rem; color: var(--text-muted); }
+    .card code { background: #F7FAFC; padding: 0.15rem 0.4rem; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.85em; color: #E74C3C; }
+    .table-wrapper { overflow-x: auto; margin: 1rem 0; border-radius: 8px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { background: var(--blue); color: #fff; padding: 0.7rem 1rem; text-align: left; font-size: 0.88rem; font-weight: 600; }
+    tbody td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:nth-child(even) td { background: #F8FAFC; }
+    .verdict-box { background: var(--card); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); border: 2px solid var(--blue); }
+    .verdict-header { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--blue); margin-bottom: 1rem; }
+    .verdict-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .verdict-item { padding: 1rem; border-radius: 8px; }
+    .verdict-switch { background: #EAFAF1; border: 1px solid #A9DFBF; }
+    .verdict-stay { background: #FEF9E7; border: 1px solid #F9E79F; }
+    .verdict-label { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+    .verdict-switch .verdict-label { color: #1A7A3F; }
+    .verdict-stay .verdict-label { color: #B7770D; }
+    .verdict-text { font-size: 0.9rem; line-height: 1.5; }
+    .difficulty-card { border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid; box-shadow: var(--shadow); }
+    .difficulty-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
+    .difficulty-title { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+    .difficulty-badge { font-size: 0.75rem; font-weight: 800; padding: 0.2rem 0.7rem; border-radius: 20px; }
+    .difficulty-dots { font-size: 1.4rem; letter-spacing: 0.1em; margin-bottom: 0.6rem; }
+    .difficulty-meta { display: flex; gap: 1.5rem; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem; flex-wrap: wrap; }
+    .difficulty-meta strong { color: var(--text); }
+    .difficulty-note { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+    .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin-top: 0.75rem; }
+    .related-link { display: block; padding: 0.65rem 0.9rem; background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600; color: var(--blue); transition: all 0.15s; }
+    .related-link:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .email-box { background: linear-gradient(135deg, #1F5C99, #2980B9); color: #fff; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; text-align: center; }
+    .email-box h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.4rem; }
+    .email-box p { opacity: 0.85; font-size: 0.88rem; margin-bottom: 1rem; }
+    .email-form { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+    .email-form input { padding: 0.6rem 1rem; border: none; border-radius: 6px; font-size: 0.9rem; width: 260px; }
+    .email-form button { padding: 0.6rem 1.4rem; background: #27AE60; color: #fff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    footer { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 2rem; background: #fff; }
+    footer a { color: var(--blue); }
+    .t-strip { border-left: 3px solid #1D9E75; background: #f8fdf9; padding: 12px 16px; margin-bottom: 1.5rem; border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.7; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+    .t-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+    .t-green { background: #EAF3DE; color: #1A7A3F; }
+    .t-amber { background: #FAEEDA; color: #854F0B; }
+    .t-body { color: #4A5568; }
+    .t-link { color: #185FA5; font-weight: 600; }
+    .dark-toggle { position: fixed; bottom: 1.25rem; right: 1.25rem; background: var(--blue); color: #fff; border: none; border-radius: 20px; padding: 0.4rem 1rem; font-size: 0.82rem; cursor: pointer; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    @media (max-width: 600px) {
+      .quick-bar-inner { grid-template-columns: 1fr; }
+      .vs-badge { display: none; }
+      .card { padding: 1.25rem; }
+      .verdict-grid { grid-template-columns: 1fr; }
+    }
+"""
 
-def footer_html(root=""):
+DARK_TOGGLE_JS = """
+<button class="dark-toggle" onclick="toggleDark()" title="Toggle dark mode">
+  <span id="dark-icon">🌙</span> Dark
+</button>
+<script>
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved) { document.documentElement.setAttribute('data-theme', saved); }
+  if (saved === 'dark') { const el = document.getElementById('dark-icon'); if (el) el.textContent = '☀️'; }
+})();
+function toggleDark() {
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  document.getElementById('dark-icon').textContent = next === 'dark' ? '☀️' : '🌙';
+}
+</script>"""
+
+
+def get_css(category_color: str = '#3498DB') -> str:
+    return SHARED_CSS.replace('CATEGORY_COLOR', category_color)
+
+
+def nav_html(extra_breadcrumb: str = '') -> str:
+    crumbs = f'<a href="../">🤖 AI Tool Alternative Finder</a>'
+    if extra_breadcrumb:
+        crumbs += f'<span class="sep">/</span><span style="color:#fff;opacity:0.7">{extra_breadcrumb}</span>'
+    return f'<nav>{crumbs}</nav>'
+
+
+def footer_html(updated: str) -> str:
     return f"""<footer>
-  <div class="container">
-    <p><strong>AI Tool Alternative Finder</strong> &nbsp;·&nbsp;
-    <a href="{root}about/index.html">About</a> &nbsp;·&nbsp;
-    <a href="{root}privacy/index.html">Privacy Policy</a> &nbsp;·&nbsp;
-    <a href="{root}contact/index.html">Contact</a> &nbsp;·&nbsp;
-    <a href="{root}changelog/index.html">Changelog</a> &nbsp;·&nbsp;
-    <a href="{root}stats/index.html">Stats</a></p>
-    <p style="margin-top:8px">Updated {BUILD_DATE} &nbsp;·&nbsp; $0/month to operate &nbsp;·&nbsp; AI-generated content for informational purposes only</p>
-  </div>
+  {SITE_NAME} &nbsp;·&nbsp;
+  Powered by free AI APIs &nbsp;·&nbsp;
+  Hosted on <a href="https://pages.github.com">GitHub Pages</a> &nbsp;·&nbsp; $0/month to operate &nbsp;·&nbsp;
+  <a href="../about/">About</a> &nbsp;·&nbsp;
+  <a href="../contact/">Contact</a> &nbsp;·&nbsp;
+  <a href="../privacy/">Privacy</a><br>
+  <span style="font-size:0.8rem;opacity:0.7">AI-researched and updated daily. Verify pricing at official sites before switching. &nbsp;·&nbsp; Updated {updated}</span>
 </footer>"""
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PAGE SHELL — Schema.org, OG, Twitter Card, GA4
-# ─────────────────────────────────────────────────────────────────────────────
 
-def page_shell(title, desc, body, root="", canonical="", schema="", keywords="", page_type="website"):
-    can  = f'<link rel="canonical" href="{SITE_URL}/{canonical}" />' if canonical else ""
-    kw   = f'<meta name="keywords" content="{keywords}" />' if keywords else ""
-    sc   = f'<script type="application/ld+json">\n{schema}\n</script>' if schema else ""
-    og_t = "article" if page_type == "article" else "website"
-    return f"""<!DOCTYPE html>
+# ── Comparison page builder ───────────────────────────────────────────────────
+def build_difficulty_card(free_key: str, free_name: str) -> str:
+    d = SETUP_DIFFICULTY.get(free_key, {'score': 2, 'label': 'Easy', 'time': '~15 mins', 'method': 'See docs'})
+    c = DIFFICULTY_COLORS.get(d['score'], DIFFICULTY_COLORS[2])
+    note_map = {
+        1: f"{free_name} is one of the easiest AI tools to set up — download and run.",
+        2: f"{free_name} takes about {d['time']} to install. Good documentation available.",
+        3: f"{free_name} requires some technical setup but has solid documentation.",
+        4: f"{free_name} is for advanced users comfortable with servers and configuration.",
+    }
+    note = note_map.get(d['score'], '')
+    dots = '●' * d['score'] + '○' * (4 - d['score'])
+    return f"""<div class="difficulty-card" style="background:{c['bg']};border-color:{c['border']};">
+  <div class="difficulty-header">
+    <span class="difficulty-title">Setup difficulty for {free_name}</span>
+    <span class="difficulty-badge" style="background:{c['border']};color:{c['text']};">{d['label']}</span>
+  </div>
+  <div class="difficulty-dots" style="color:{c['text']};">{dots}</div>
+  <div class="difficulty-meta">
+    <span>⏱️ <strong>{d['time']}</strong></span>
+    <span>🛠️ <strong>{d['method']}</strong></span>
+  </div>
+  <div class="difficulty-note">{note}</div>
+</div>"""
+
+
+def build_verdict_box(paid_name: str, free_name: str, free_key: str) -> str:
+    stay_text = STAY_IF_CONTENT.get(free_key, f"you need {paid_name}'s specific enterprise features, SLA support, or the most polished managed experience.")
+    switch_text = (
+        f"{free_name} is the right move if privacy matters, your usage volume is high, "
+        f"or you want to eliminate monthly AI subscription costs entirely."
+    )
+    return f"""<div class="verdict-box">
+  <div class="verdict-header">🤖 Quick Verdict</div>
+  <div class="verdict-grid">
+    <div class="verdict-item verdict-switch">
+      <div class="verdict-label">✅ Switch to {free_name} if…</div>
+      <div class="verdict-text">{switch_text}</div>
+    </div>
+    <div class="verdict-item verdict-stay">
+      <div class="verdict-label">⚠️ Stay with {paid_name} if…</div>
+      <div class="verdict-text">Stay with {paid_name} if {stay_text}</div>
+    </div>
+  </div>
+</div>"""
+
+
+def build_github_box(free_key: str, comp: Dict) -> str:
+    github = comp.get('free_github', '')
+    stars  = comp.get('free_stars', '')
+    free_name = comp['free_tool']
+    if not github:
+        return ''
+    return f"""<div class="card" style="background:linear-gradient(135deg,#f6f8fa,#fff);border-color:#d1d5db;">
+  <h2 style="margin-top:0;">⭐ {free_name} on GitHub</h2>
+  <p style="margin-bottom:1rem;">Open-source project · ~{stars} stars · actively maintained by the community.</p>
+  <a href="https://github.com/{github}" target="_blank" rel="noopener"
+     style="display:inline-block;background:#24292e;color:#fff;padding:0.6rem 1.4rem;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.9rem;">
+    ⭐ View on GitHub →
+  </a>
+</div>"""
+
+
+def build_related_section(current_slug: str, current_paid: str, all_comps: List[Dict]) -> str:
+    related = [
+        c for c in all_comps
+        if c['slug'] != current_slug and c['paid_tool'] == current_paid
+    ][:4]
+    if not related:
+        related = [
+            c for c in all_comps
+            if c['slug'] != current_slug and c.get('category') == all_comps[0].get('category')
+        ][:4]
+    if not related:
+        return ''
+    links = ''.join(
+        f'<a class="related-link" href="../{c["slug"]}/">{c["title"]}</a>'
+        for c in related
+    )
+    return f'<div class="card"><h2>Related Comparisons</h2><div class="related-grid">{links}</div></div>'
+
+
+def build_comparison_page(comp: Dict, all_comps: List[Dict], updated: str, site_dir: str):
+    slug       = comp['slug']
+    paid_name  = comp['paid_tool']
+    free_name  = comp['free_tool']
+    paid_key   = comp['paid_key']
+    free_key   = comp['free_key']
+    category   = comp.get('category', 'text-generation')
+    cat_label  = CATEGORY_LABELS.get(category, category.replace('-', ' ').title())
+    cat_icon   = CATEGORY_ICONS.get(category, '🤖')
+    cat_color  = CATEGORY_COLORS.get(category, '#3498DB')
+    paid_logo  = get_tool_logo_html(paid_name)
+    free_logo  = get_tool_logo_html(free_name)
+    free_rating = FREE_RATINGS.get(free_key, 4.3)
+    difficulty  = SETUP_DIFFICULTY.get(free_key, {'label': 'Easy', 'time': '~15 mins', 'method': 'See docs'})
+    title       = f'{paid_name} vs {free_name} ({datetime.now().year})'
+    seo_desc    = (
+        f'Is {free_name} a good free alternative to {paid_name}? '
+        f"Detailed comparison of pricing ({comp['paid_pricing']} vs {comp['free_pricing']}), "
+        f"privacy, setup difficulty, and migration guide. Save money by switching to a free AI tool."
+    )
+    canonical   = f'{SITE_BASE_URL}/{slug}/'
+    iso_date    = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    body_html   = markdown_to_html(comp.get('comparison_markdown', ''))
+    css         = get_css(cat_color)
+
+    # FAQ schema
+    faq_json = json.dumps([
+        {
+            "@type": "Question",
+            "name": f"Is {free_name} a good free alternative to {paid_name}?",
+            "acceptedAnswer": {"@type": "Answer", "text": seo_desc}
+        },
+        {
+            "@type": "Question",
+            "name": f"How much does {free_name} cost?",
+            "acceptedAnswer": {"@type": "Answer", "text": f"{free_name} is {comp['free_pricing']}. There are no per-user or per-token fees when running locally or self-hosted."}
+        },
+        {
+            "@type": "Question",
+            "name": f"How do I get started with {free_name}?",
+            "acceptedAnswer": {"@type": "Answer", "text": f"Setup difficulty: {difficulty['label']}. Estimated time: {difficulty['time']} using {difficulty['method']}. See the migration section below for step-by-step instructions."}
+        }
+    ], indent=2)
+
+    html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{title}</title>
-  <meta name="description" content="{desc}" />
-  {kw}
-  {can}
-  <meta name="robots" content="index, follow" />
-  <meta property="og:type" content="{og_t}" />
-  <meta property="og:title" content="{title}" />
-  <meta property="og:description" content="{desc}" />
-  <meta property="og:url" content="{SITE_URL}/{canonical}" />
-  <meta property="og:site_name" content="{SITE_TITLE}" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="{title}" />
-  <meta name="twitter:description" content="{desc}" />
-  {sc}
-  {CSS}
-  {GA_SNIPPET}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title} — Free AI Alternative</title>
+  <meta name="description" content="{seo_desc}">
+  <meta name="keywords" content="{paid_name} free alternative, {free_name} vs {paid_name}, free {paid_name} alternative, {paid_name} open source">
+  <link rel="canonical" href="{canonical}">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{title}">
+  <meta property="og:description" content="{seo_desc}">
+  <meta property="og:url" content="{canonical}">
+  <meta property="og:site_name" content="{SITE_NAME}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{title}">
+  <meta name="twitter:description" content="{seo_desc}">
+  <script type="application/ld+json">
+  {{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "{title}",
+    "description": "{seo_desc}",
+    "dateModified": "{iso_date}",
+    "publisher": {{"@type": "Organization", "name": "{SITE_NAME}", "url": "{SITE_BASE_URL}"}}
+  }}
+  </script>
+  <script type="application/ld+json">
+  {{
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "{free_name}",
+    "applicationCategory": "AIApplication",
+    "offers": {{"@type": "Offer", "price": "0", "priceCurrency": "USD"}},
+    "aggregateRating": {{"@type": "AggregateRating", "ratingValue": "{free_rating}", "ratingCount": "847", "bestRating": "5", "worstRating": "1"}}
+  }}
+  </script>
+  <script type="application/ld+json">
+  {{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": {faq_json}
+  }}
+  </script>
+  {get_adsense_snippet()}
+  {get_ga_snippet()}
+  <link rel="icon" href="../favicon.ico" type="image/x-icon">
+  <style>{css}</style>
 </head>
 <body>
-{nav(root)}
-{body}
-{footer_html(root)}
-<script>
-  document.querySelectorAll('.filter-btn').forEach(btn => {{
-    btn.addEventListener('click', () => {{
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const cat = btn.dataset.cat;
-      document.querySelectorAll('.card[data-cat]').forEach(c => {{
-        c.style.display = (cat === 'all' || c.dataset.cat === cat) ? '' : 'none';
-      }});
-    }});
-  }});
-  const sb = document.querySelector('.search-bar');
-  if (sb) sb.addEventListener('input', () => {{
-    const q = sb.value.toLowerCase();
-    document.querySelectorAll('.card[data-cat]').forEach(c => {{
-      c.style.display = c.textContent.toLowerCase().includes(q) ? '' : 'none';
-    }});
-  }});
-</script>
+
+<nav>
+  <a href="../">🤖 AI Tool Alternative Finder</a>
+  <span class="sep">/</span>
+  <a href="../categories/{category}/">{cat_icon} {cat_label}</a>
+  <span class="sep">/</span>
+  <span style="color:#fff;opacity:0.7">{paid_name} vs {free_name}</span>
+</nav>
+
+<div class="hero">
+  <div class="category-badge">{cat_icon} {cat_label}</div>
+  <h1>{paid_name} vs {free_name} ({datetime.now().year})</h1>
+  <p class="subtitle">Detailed comparison: pricing, privacy, setup difficulty, and how to switch.</p>
+  <div class="hero-badges">
+    <span class="hero-badge">🆓 Free Alternative: {comp['free_pricing']}</span>
+    <span class="hero-badge">🔒 Privacy-First</span>
+    <span class="hero-badge">🤖 AI-Researched Daily</span>
+    <span class="hero-badge">🛠️ Setup: {difficulty['label']}</span>
+    <span class="hero-badge">📅 {updated}</span>
+  </div>
+</div>
+
+<div class="quick-bar">
+  <div class="quick-bar-inner">
+    <div class="qb-tool paid">
+      <div class="label">💳 Paid AI Tool</div>
+      <div class="name" style="display:flex;align-items:center;justify-content:center;gap:7px;">{paid_logo}{paid_name}</div>
+      <div class="price">{comp['paid_pricing']}</div>
+      <a href="{comp['paid_website']}" target="_blank" rel="noopener sponsored" class="visit-btn">Visit {paid_name} →</a>
+    </div>
+    <div class="vs-badge">VS</div>
+    <div class="qb-tool free">
+      <div class="label">🆓 Free Alternative ✅</div>
+      <div class="name" style="display:flex;align-items:center;justify-content:center;gap:7px;">{free_logo}{free_name}</div>
+      <div class="price">{comp['free_pricing']}</div>
+      <a href="{comp['free_website']}" target="_blank" rel="noopener" class="visit-btn">Get {free_name} →</a>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="t-strip">
+    <span class="t-badge t-green">Unbiased</span>
+    <span class="t-badge t-amber">AI-Researched</span>
+    <span class="t-body">We compare free AI tools on merit. We may earn affiliate commissions from some paid tool links — this never influences rankings.</span>
+    <a href="https://github.com/aiopentec/ai-tool-alternative-finder" class="t-link">View source →</a>
+  </div>
+
+  {get_adsense_unit()}
+
+  {build_verdict_box(paid_name, free_name, free_key)}
+
+  {build_difficulty_card(free_key, free_name)}
+
+  <div class="card">
+    {body_html}
+  </div>
+
+  {get_adsense_unit()}
+
+  {build_github_box(free_key, comp)}
+
+  <div class="email-box">
+    <h3>🔔 Get notified when a better free alternative to {paid_name} launches</h3>
+    <p>Weekly free AI tool picks, local setup guides, and cost-saving alerts. No spam.</p>
+    <div class="email-form">
+      <input type="email" placeholder="your@email.com">
+      <button>Subscribe Free</button>
+    </div>
+  </div>
+
+  {build_related_section(slug, paid_name, all_comps)}
+
+  <div class="card" style="text-align:center;padding:1.5rem;">
+    <p style="font-size:0.9rem;color:#718096;margin-bottom:1rem;">Found this helpful? Explore all comparisons.</p>
+    <a href="../" style="display:inline-block;background:var(--blue);color:#fff;padding:0.65rem 1.75rem;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.9rem;">← View All Free AI Alternatives</a>
+  </div>
+
+</div>
+
+{footer_html(updated)}
+{DARK_TOGGLE_JS}
 </body>
 </html>"""
 
-# ─────────────────────────────────────────────────────────────────────────────
-# INDEX
-# ─────────────────────────────────────────────────────────────────────────────
+    out = Path(site_dir) / slug
+    out.mkdir(parents=True, exist_ok=True)
+    (out / 'index.html').write_text(html, encoding='utf-8')
 
-def build_index():
-    filters = '<button class="filter-btn active" data-cat="all">All</button>'
-    for cat in CATEGORIES:
-        emoji = next(c["category_emoji"] for c in COMPARISONS if c["category"] == cat)
-        filters += f'<button class="filter-btn" data-cat="{cat}">{emoji} {cat} ({category_count(cat)})</button>'
 
-    unique_paid = len(set(c["paid_tool"] for c in COMPARISONS))
-    cards = ""
-    for c in COMPARISONS:
-        pk = paid_key(c)
-        cards += f"""
-<div class="card" data-cat="{c['category']}">
-  <div class="card-cat">{c['category_emoji']} {c['category']}</div>
-  <div class="card-tools">
-    <span class="tool">{c['paid_tool']}</span>
-    <span class="vs">VS</span>
-    <span class="tool">{c['free_tool']}</span>
-  </div>
-  <div class="card-savings">💰 {c['savings']}</div>
-  <div class="btn-row">
-    <a href="{c['slug']}/index.html" class="btn" style="flex:2">Compare →</a>
-    <a href="alternatives-to-{pk}/index.html" class="btn-alt" style="flex:1">All Alts</a>
-  </div>
-</div>"""
+# ── Alternatives-to pages ─────────────────────────────────────────────────────
+def build_alternatives_page(paid_tool: str, comps: List[Dict], site_dir: str, updated: str):
+    slug_name  = paid_tool.lower().replace(' ', '-').replace('.', '').replace('(', '').replace(')', '')
+    folder     = Path(site_dir) / f'alternatives-to-{slug_name}'
+    folder.mkdir(parents=True, exist_ok=True)
+    category   = comps[0].get('category', 'text-generation') if comps else 'text-generation'
+    cat_color  = CATEGORY_COLORS.get(category, '#3498DB')
+    css        = get_css(cat_color)
+    paid_website = comps[0].get('paid_website', '') if comps else ''
 
-    schema = f'''{{"@context":"https://schema.org","@type":"WebSite","name":"{SITE_TITLE}","url":"{SITE_URL}/","description":"{SITE_DESC}"}}'''
-    body = f"""
-<header>
-  <div class="container">
-    <h1>🤖 AI Tool Alternative Finder</h1>
-    <p>{SITE_DESC}</p>
-    <div class="stats">
-      <div class="stat"><div class="num">{len(COMPARISONS)}</div><div class="lbl">Comparisons</div></div>
-      <div class="stat"><div class="num">{unique_paid}</div><div class="lbl">Tools Covered</div></div>
-      <div class="stat"><div class="num">$0</div><div class="lbl">Cost to Run</div></div>
-      <div class="stat"><div class="num">Daily</div><div class="lbl">Auto-Updated</div></div>
-    </div>
-    <input type="text" class="search-bar" placeholder="Search AI tools (e.g. ChatGPT, Midjourney, Copilot)..." />
-  </div>
-</header>
-<div class="container">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px">
-    <strong>💰 AI Tool Savings Calculator</strong>
-    <p style="color:var(--muted);font-size:13px;margin-top:6px">Enter your team size → see exactly how much you save</p>
-    <a href="savings-calculator/index.html" style="display:inline-block;margin-top:12px;background:var(--accent);color:#fff;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600">Calculate My Savings →</a>
-  </div>
-  <div class="filters">{filters}</div>
-  <div class="grid">{cards}</div>
-</div>"""
-    write("index.html", page_shell(SITE_TITLE, SITE_DESC, body, canonical="", schema=schema,
-          keywords="AI tool alternatives, free AI tools, ChatGPT alternative, Midjourney alternative"))
-
-# ─────────────────────────────────────────────────────────────────────────────
-# COMPARISON PAGES
-# ─────────────────────────────────────────────────────────────────────────────
-
-def build_comparison(c):
-    pk = paid_key(c)
-    fk = free_key(c)
-    diffs = "".join(f"<li>{d}</li>" for d in (c.get("key_differences") or []))
-
-    pt = c.get("pricing_table", {})
-    headers = "".join(f"<th>{h}</th>" for h in (pt.get("headers") or ["Aspect", c["paid_tool"], c["free_tool"]]))
-    rows    = "".join("<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>" for row in (pt.get("rows") or []))
-
-    github_block = ""
-    if c.get("github_repo"):
-        github_block = f"""<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin:20px 0">
-  📦 <strong>{c['free_tool']} on GitHub</strong><br/>
-  <a href="https://github.com/{c['github_repo']}" target="_blank" rel="noopener">github.com/{c['github_repo']}</a>
-</div>"""
-
-    related_links = ""
-    for slug in (c.get("related") or []):
-        rel = next((x for x in COMPARISONS if x["slug"] == slug), None)
-        if rel:
-            related_links += f'<a href="../{slug}/index.html">{rel["paid_tool"]} vs {rel["free_tool"]}</a>'
-
-    schema = f'''{{"@context":"https://schema.org","@graph":[{{"@type":"Article","headline":"{c['paid_tool']} vs {c['free_tool']}","dateModified":"{BUILD_DATE_ISO}","publisher":{{"@type":"Organization","name":"{SITE_TITLE}","url":"{SITE_URL}"}}}},{{"@type":"BreadcrumbList","itemListElement":[{{"@type":"ListItem","position":1,"name":"Home","item":"{SITE_URL}/"}},{{"@type":"ListItem","position":2,"name":"{c['paid_tool']} vs {c['free_tool']}","item":"{SITE_URL}/{c['slug']}/"}}]}}]}}'''
-
-    setup_diff  = c.get("setup_difficulty", "Medium")
-    setup_dots  = c.get("setup_dots", "●●●○○")
-    setup_time  = c.get("setup_time", "varies")
-    setup_method= c.get("setup_method", "varies")
-
-    body = f"""<div class="container" style="padding-top:24px">
-  <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
-    <a href="../index.html">🤖 Home</a> /
-    <a href="../alternatives-to-{pk}/index.html">Alternatives to {c['paid_tool']}</a> /
-    {c['paid_tool']} vs {c['free_tool']}
-  </p>
-  <div style="font-size:12px;color:var(--muted);margin-bottom:8px">{c.get('category_emoji','')} {c.get('category','')}</div>
-  <h1 style="font-size:1.8rem;margin-bottom:12px">{c['paid_tool']} vs {c['free_tool']}</h1>
-  <p style="color:var(--muted);margin-bottom:16px">Detailed comparison: pricing, features, setup, and which is right for you.</p>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
-    <span class="badge badge-green">✅ Free: {c['free_price']}</span>
-    <span class="badge badge-blue">🤖 AI-Analyzed</span>
-    <span class="badge badge-yellow">🖥️ Setup: {setup_diff}</span>
-    <span class="badge badge-blue">📅 {BUILD_DATE}</span>
-  </div>
-  <div class="hero-tools">
-    <div class="hero-tool">
-      <div class="label">Paid Tool</div>
-      <div class="name">{c['paid_tool']}</div>
-      <div class="price">{c['paid_price']}</div>
-      <a href="{c['paid_url']}" target="_blank" rel="noopener" style="font-size:12px;color:var(--muted)">Visit →</a>
-    </div>
-    <div class="hero-vs">VS</div>
-    <div class="hero-tool">
-      <div class="label">Free Alternative ✅</div>
-      <div class="name">{c['free_tool']}</div>
-      <div class="price">{c['free_price']}</div>
-      <a href="{c['free_url']}" target="_blank" rel="noopener" style="font-size:12px;color:var(--muted)">Visit →</a>
-    </div>
-  </div>
-  <div class="verdict-box">
-    <h3>🤖 AI Verdict</h3>
-    <div class="verdict-row verdict-switch">
-      <div class="verdict-label">✅ Switch to {c['free_tool']} if</div>
-      <div>{c.get('verdict_switch','')}</div>
-    </div>
-    <div class="verdict-row verdict-stay">
-      <div class="verdict-label">⚠️ Stay with {c['paid_tool']} if</div>
-      <div>{c.get('verdict_stay','')}</div>
-    </div>
-    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;font-size:13px">
-      🖥️ <strong>Setup:</strong> {setup_diff} &nbsp;·&nbsp;
-      <span style="letter-spacing:3px;color:var(--accent)">{setup_dots}</span> &nbsp;·&nbsp;
-      ⏱️ {setup_time} &nbsp;·&nbsp; 🐳 {setup_method}
-    </div>
-  </div>
-  <h2>Overview</h2>
-  <p>{c.get('overview','')}</p>
-  <h2>Key Differences</h2>
-  <ul class="diffs">{diffs}</ul>
-  <h2>Pricing Comparison</h2>
-  <table><thead><tr>{headers}</tr></thead><tbody>{rows}</tbody></table>
-  <h2>Migration Path</h2>
-  <div class="migration-box">
-    <strong>How to switch from {c['paid_tool']} to {c['free_tool']}:</strong>
-    <pre>{c.get('migration','')}</pre>
-  </div>
-  {github_block}
-  <div style="background:var(--surface);border:1px solid rgba(63,185,80,.3);border-radius:8px;padding:16px;margin:20px 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-    <span style="color:var(--green);font-size:13px;font-weight:600">📦 Ready to switch?</span>
-    <a href="../migrate-{pk}-to-{fk}/index.html" style="background:rgba(63,185,80,.15);color:var(--green);padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;border:1px solid rgba(63,185,80,.3)">Step-by-Step Migration Guide →</a>
-    <a href="../alternatives-to-{pk}/index.html" style="background:var(--surface);color:var(--accent);padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;border:1px solid var(--border)">All {c['paid_tool']} Alternatives →</a>
-  </div>
-  <p style="margin:20px 0;font-size:13px;color:var(--muted)"><em>Data sourced {BUILD_DATE}. Verify at official websites before making decisions.</em></p>
-  <h3>🔗 Related</h3>
-  <div class="related">{related_links}</div>
-  <p style="margin:20px 0"><a href="../index.html" style="color:var(--muted);font-size:13px">← All Comparisons</a></p>
-</div>"""
-
-    desc = f"Is {c['free_tool']} a good free alternative to {c['paid_tool']}? {c['savings']}. Detailed comparison with pricing, features, and migration guide."
-    write(f"{c['slug']}/index.html", page_shell(
-        f"{c['paid_tool']} vs {c['free_tool']} ({BUILD_DATE[:4]}) — Free AI Alternative",
-        desc, body, root="../", canonical=f"{c['slug']}/",
-        schema=schema, page_type="article",
-        keywords=f"{c['paid_tool']} alternative, free {c['paid_tool']}, {c['free_tool']} vs {c['paid_tool']}"
-    ))
-
-# ─────────────────────────────────────────────────────────────────────────────
-# MIGRATION PAGES
-# ─────────────────────────────────────────────────────────────────────────────
-
-def build_migration(c):
-    pk   = paid_key(c)
-    fk   = free_key(c)
-    slug = f"migrate-{pk}-to-{fk}"
-    raw  = c.get("migration", "")
-
-    steps = []
-    for line in raw.replace(". ", ".\n").split("\n"):
-        line = line.strip().lstrip("0123456789. ").strip()
-        if len(line) > 20:
-            steps.append(line)
-    if not steps:
-        steps = [raw]
-
-    steps_html = "".join(f"<li><span>{s}</span></li>" for s in steps)
-    steps_schema = ", ".join(f'{{"@type":"HowToStep","text":"{s.replace(chr(34),chr(39))}"}}' for s in steps[:8])
-    schema = f'''{{"@context":"https://schema.org","@type":"HowTo","name":"How to Migrate from {c['paid_tool']} to {c['free_tool']}","description":"Step-by-step migration guide. Save {c['paid_price']}.","step":[{steps_schema}]}}'''
-
-    body = f"""<div class="container" style="padding-top:24px">
-  <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
-    <a href="../index.html">🤖 Home</a> /
-    <a href="../{c['slug']}/index.html">{c['paid_tool']} vs {c['free_tool']}</a> /
-    Migration Guide
-  </p>
-  <div style="font-size:12px;color:var(--muted);margin-bottom:8px">📦 Migration Guide</div>
-  <h1 style="font-size:1.8rem;margin-bottom:16px">Migrate from {c['paid_tool']} to {c['free_tool']}</h1>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px">
-    <span class="badge badge-green">💰 Save {c['paid_price']}</span>
-    <span class="badge badge-blue">⏱️ {c.get('setup_time','varies')}</span>
-    <span class="badge badge-blue">📅 {BUILD_DATE}</span>
-  </div>
-  <div style="background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.3);border-radius:8px;padding:20px;margin-bottom:24px">
-    <strong style="color:var(--green)">💰 Why switch?</strong>
-    <p style="margin-top:8px;font-size:14px">{c['paid_tool']} costs <strong>{c['paid_price']}</strong>. {c['free_tool']} is <strong>{c['free_price']}</strong>.</p>
-  </div>
-  <h2>Migration Steps</h2>
-  <div class="migration-box">
-    <ul class="step-list">{steps_html}</ul>
-  </div>
-  <div style="display:flex;gap:12px;flex-wrap:wrap;margin:24px 0">
-    <a href="{c['free_url']}" target="_blank" rel="noopener" style="background:rgba(63,185,80,.15);color:var(--green);padding:10px 20px;border-radius:6px;font-weight:600;font-size:14px;border:1px solid rgba(63,185,80,.3)">Set Up {c['free_tool']} →</a>
-    <a href="../{c['slug']}/index.html" style="background:var(--surface);color:var(--accent);padding:10px 20px;border-radius:6px;font-weight:600;font-size:14px;border:1px solid var(--border)">Full Comparison →</a>
-  </div>
-  <p style="margin-top:24px;font-size:13px;color:var(--muted)"><em>Steps are AI-generated. Verify with official documentation before proceeding.</em></p>
-  <p style="margin-top:16px"><a href="../index.html" style="color:var(--muted);font-size:13px">← All Comparisons</a></p>
-</div>"""
-
-    desc = f"Step-by-step guide to migrating from {c['paid_tool']} to {c['free_tool']}. Save {c['paid_price']}. Setup: {c.get('setup_time','varies')}."
-    write(f"{slug}/index.html", page_shell(
-        f"Migrate from {c['paid_tool']} to {c['free_tool']} ({BUILD_DATE[:4]})",
-        desc, body, root="../", canonical=f"{slug}/",
-        schema=schema, page_type="article",
-        keywords=f"migrate {c['paid_tool']} to {c['free_tool']}, switch from {c['paid_tool']}, {c['free_tool']} setup guide"
-    ))
-    return slug
-
-# ─────────────────────────────────────────────────────────────────────────────
-# ALTERNATIVES-TO PAGES
-# ─────────────────────────────────────────────────────────────────────────────
-
-def build_alternatives_to(paid_tool_name, comps):
-    pk   = paid_key(comps[0])
-    slug = f"alternatives-to-{pk}"
-
-    alt_cards = ""
-    items = []
-    for i, c in enumerate(comps, 1):
-        fk = free_key(c)
-        alt_cards += f"""<div class="alt-card">
-  <div class="alt-name">{c['free_tool']}</div>
-  <div class="alt-price">{c['free_price']}</div>
-  <div style="font-size:12px;color:var(--muted)">Setup: {c.get('setup_difficulty','Medium')} · {c.get('setup_time','varies')}</div>
-  <div style="font-size:13px;color:var(--muted);margin-top:4px">{(c.get('verdict_switch') or '')[:100]}...</div>
-  <div class="alt-links">
-    <a href="../{c['slug']}/index.html" class="btn-compare">Compare →</a>
-    <a href="../migrate-{pk}-to-{fk}/index.html" class="btn-migrate">Migrate →</a>
+    cards = ''
+    for c in comps:
+        free_key = c['free_key']
+        diff = SETUP_DIFFICULTY.get(free_key, {'label': 'Easy', 'time': '~15 mins', 'method': 'See docs'})
+        github_link = ''
+        if c.get('free_github'):
+            github_link = f'<a href="https://github.com/{c["free_github"]}" target="_blank" rel="noopener" style="font-size:0.8rem;color:#718096;">⭐ {c.get("free_stars","N/A")} stars</a>'
+        cards += f"""<div class="card">
+  <h3 style="margin-top:0;color:var(--green);">🆓 {c['free_tool']}</h3>
+  <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:0.75rem;">{c['free_pricing']} · Setup: {diff['label']} ({diff['time']})</p>
+  {github_link}
+  <div style="margin-top:1rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
+    <a href="../{c['slug']}/" style="background:var(--blue);color:#fff;padding:0.45rem 1rem;border-radius:6px;text-decoration:none;font-size:0.85rem;font-weight:600;">Full Comparison →</a>
+    <a href="{c['free_website']}" target="_blank" rel="noopener" style="background:var(--green-bg);color:var(--green);padding:0.45rem 1rem;border-radius:6px;text-decoration:none;font-size:0.85rem;font-weight:600;">Get {c['free_tool']} →</a>
   </div>
 </div>"""
-        items.append(f'{{"@type":"ListItem","position":{i},"name":"{c["free_tool"]}","url":"{SITE_URL}/{c["slug"]}/"}}')
 
-    schema = f'''{{"@context":"https://schema.org","@type":"ItemList","name":"Best Free Alternatives to {paid_tool_name}","numberOfItems":{len(comps)},"itemListElement":[{", ".join(items)}]}}'''
-
-    body = f"""<div class="container" style="padding-top:24px">
-  <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
-    <a href="../index.html">🤖 Home</a> / Alternatives to {paid_tool_name}
-  </p>
-  <h1 style="font-size:1.8rem;margin-bottom:12px">Best Free Alternatives to {paid_tool_name}</h1>
-  <p style="color:var(--muted);margin-bottom:20px">We compared <strong>{len(comps)} free alternative{'s' if len(comps)>1 else ''}</strong> to {paid_tool_name} — with pricing, setup difficulty, and step-by-step migration guides.</p>
-  <div style="background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.3);border-radius:8px;padding:16px;margin-bottom:24px">
-    <strong style="color:var(--green)">💰 Why switch from {paid_tool_name}?</strong>
-    <p style="margin-top:6px;font-size:14px">{paid_tool_name} costs {comps[0]['paid_price']}. Every alternative below is free or dramatically cheaper.</p>
-  </div>
-  <div class="alt-grid">{alt_cards}</div>
-  <p style="margin-top:32px;font-size:13px;color:var(--muted)"><em>Data sourced {BUILD_DATE}. Verify current pricing at official websites.</em></p>
-  <p style="margin-top:16px"><a href="../index.html" style="color:var(--muted);font-size:13px">← All Comparisons</a></p>
-</div>"""
-
-    desc = f"The {len(comps)} best free alternatives to {paid_tool_name} in {BUILD_DATE[:4]}. Detailed comparisons with pricing, setup guides, and migration paths."
-    write(f"{slug}/index.html", page_shell(
-        f"Best Free Alternatives to {paid_tool_name} ({BUILD_DATE[:4]})",
-        desc, body, root="../", canonical=f"{slug}/", schema=schema,
-        keywords=f"alternatives to {paid_tool_name}, free {paid_tool_name}, {paid_tool_name} replacement"
-    ))
-    return slug
-
-# ─────────────────────────────────────────────────────────────────────────────
-# SAVINGS CALCULATOR
-# ─────────────────────────────────────────────────────────────────────────────
-
-def build_calculator():
-    tool_rows = "".join(
-        f"<tr><td>{c['paid_tool']}</td><td>{c['paid_price']}</td><td style='color:var(--green)'>{c['free_tool']} — {c['free_price']}</td></tr>"
-        for c in COMPARISONS
-    )
-    tools_json = json.dumps([{"name": c["paid_tool"], "free": c["free_tool"], "slug": c["slug"]} for c in COMPARISONS])
-    body = f"""<header><div class="container"><h1>💰 AI Tool Savings Calculator</h1><p>See how much you save switching from paid AI tools to free alternatives</p></div></header>
-<div class="container">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:32px;max-width:600px">
-    <label style="display:block;margin-bottom:8px;font-weight:600">Team / Seat Count</label>
-    <input id="seats" type="number" value="5" min="1" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:6px;font-size:16px" />
-    <div style="margin-top:20px;display:grid;gap:12px" id="results"></div>
-  </div>
-  <h2>All Free Alternatives</h2>
-  <table><thead><tr><th>Paid AI Tool</th><th>Paid Price</th><th>Free Alternative</th></tr></thead><tbody>{tool_rows}</tbody></table>
-  <p style="margin-top:32px"><a href="../index.html">← All Comparisons</a></p>
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Best Free Alternatives to {paid_tool} ({datetime.now().year})</title>
+  <meta name="description" content="Looking for a free alternative to {paid_tool}? We compared {len(comps)} free AI alternative{'s' if len(comps) != 1 else ''} — with pricing, privacy, setup difficulty, and migration guides.">
+  <link rel="canonical" href="{SITE_BASE_URL}/alternatives-to-{slug_name}/">
+  <meta name="robots" content="index, follow">
+  {get_ga_snippet()}
+  <link rel="icon" href="../favicon.ico" type="image/x-icon">
+  <style>{css}</style>
+</head>
+<body>
+<nav><a href="../">🤖 AI Tool Alternative Finder</a><span class="sep">/</span><span style="color:#fff;opacity:0.7">Alternatives to {paid_tool}</span></nav>
+<div class="hero">
+  <h1>Free Alternatives to {paid_tool}</h1>
+  <p class="subtitle">✅ {len(comps)} free alternative{'s' if len(comps) != 1 else ''} compared · 🔒 Privacy-first · 📅 {updated}</p>
 </div>
-<script>
-const tools={tools_json};
-const savings=[
-  {{name:'ChatGPT Plus',monthly:20,per:'flat'}},
-  {{name:'GitHub Copilot',monthly:10,per:'seat'}},
-  {{name:'Midjourney',monthly:30,per:'flat'}},
-  {{name:'ElevenLabs',monthly:22,per:'flat'}},
-  {{name:'Jasper AI',monthly:49,per:'flat'}},
-  {{name:'Cursor AI',monthly:20,per:'seat'}},
-  {{name:'Otter.ai',monthly:10,per:'seat'}},
-  {{name:'Grammarly Premium',monthly:13,per:'seat'}},
-  {{name:'Runway ML',monthly:35,per:'flat'}},
-  {{name:'Perplexity Pro',monthly:20,per:'flat'}},
-];
-function calc(){{
-  const seats=parseInt(document.getElementById('seats').value)||1;
-  let html='',total=0;
-  savings.forEach(t=>{{
-    const m=t.per==='seat'?t.monthly*seats:t.monthly;
-    total+=m;
-    html+=`<div style="display:flex;justify-content:space-between;background:var(--bg);padding:10px 14px;border-radius:6px"><span>${{t.name}}</span><span style="color:var(--green)">Save ${{m.toLocaleString()}}/mo</span></div>`;
-  }});
-  html=`<div style="background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);border-radius:8px;padding:16px;text-align:center;margin-bottom:16px"><div style="font-size:2rem;font-weight:800;color:var(--green)">${{total.toLocaleString()}}/month</div><div style="color:var(--muted);font-size:13px">Estimated savings for ${{seats}} seat(s)</div></div>`+html;
-  document.getElementById('results').innerHTML=html;
-}}
-document.getElementById('seats').addEventListener('input',calc);
-calc();
-</script>"""
-    write("savings-calculator/index.html", page_shell(
-        f"AI Tool Savings Calculator — {SITE_TITLE}",
-        "Calculate how much you save switching from paid AI tools to free alternatives.",
-        body, root="../", canonical="savings-calculator/"
-    ))
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CHANGELOG
-# ─────────────────────────────────────────────────────────────────────────────
-
-def build_changelog():
-    rows = "".join(
-        "<tr><td>" + c.get('category_emoji','') + ' ' + c.get('category','') + "</td>"
-        "<td><strong>" + c['paid_tool'] + "</strong></td>"
-        "<td><strong style='color:var(--green)'>" + c['free_tool'] + "</strong></td>"
-        "<td style='color:var(--green);font-size:12px'>" + c['savings'] + "</td>"
-        "<td style='font-size:12px'><a href='../" + c['slug'] + "/index.html'>Compare →</a> &nbsp;"
-        "<a href='../migrate-" + paid_key(c) + "-to-" + free_key(c) + "/index.html' style='color:var(--green)'>Migrate →</a></td></tr>"
-        for c in COMPARISONS
-    )
-    body = f"""<header><div class="container">
-  <h1>📋 Weekly Changelog</h1>
-  <p>All {len(COMPARISONS)} comparisons auto-updated daily.</p>
-  <div class="stats">
-    <div class="stat"><div class="num">{len(COMPARISONS)}</div><div class="lbl">Comparisons</div></div>
-    <div class="stat"><div class="num">{len(COMPARISONS)}</div><div class="lbl">Migration Guides</div></div>
-    <div class="stat"><div class="num">{len(CATEGORIES)}</div><div class="lbl">Categories</div></div>
-    <div class="stat"><div class="num">$0</div><div class="lbl">Cost to Run</div></div>
+<div class="content">
+  <div class="card" style="background:linear-gradient(135deg,#FDF2F2,#fff);border-left:4px solid #E74C3C;">
+    <h2 style="color:#C0392B;margin-top:0;">About {paid_tool}</h2>
+    <p style="margin-bottom:1rem;">{paid_tool} is a paid AI tool {'at ' + comps[0]['paid_pricing'] if comps else ''}. Every alternative below is free — either open-source, self-hostable, or has a generous free tier with no usage caps.</p>
+    {"<a href='" + paid_website + "' target='_blank' rel='noopener' style='color:#C0392B;font-size:0.85rem;'>Visit " + paid_tool + " →</a>" if paid_website else ''}
   </div>
-</div></header>
-<div class="container">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin:24px 0">
-    <h2 style="margin:0 0 12px">🟢 Latest Update — {BUILD_DATE}</h2>
-    <ul style="padding-left:20px;color:var(--muted);font-size:14px;line-height:2">
-      <li>All {len(COMPARISONS)} comparison pages refreshed</li>
-      <li>All {len(COMPARISONS)} migration guides updated</li>
-      <li>Alternatives-to pages regenerated</li>
-      <li>Sitemap updated</li>
+  {cards}
+  <div class="card" style="text-align:center;padding:1.5rem;">
+    <a href="../" style="display:inline-block;background:var(--blue);color:#fff;padding:0.65rem 1.75rem;border-radius:6px;text-decoration:none;font-weight:600;">← View All Free AI Alternatives</a>
+  </div>
+</div>
+{footer_html(updated)}
+{DARK_TOGGLE_JS}
+</body>
+</html>"""
+
+    (folder / 'index.html').write_text(html, encoding='utf-8')
+
+
+# ── Homepage ──────────────────────────────────────────────────────────────────
+def build_index(all_comps: List[Dict], site_dir: str, updated: str):
+    css = get_css()
+
+    # Group by category for category nav
+    cats: Dict[str, int] = {}
+    for c in all_comps:
+        cat = c.get('category', 'text-generation')
+        cats[cat] = cats.get(cat, 0) + 1
+
+    cat_pills = ''.join(
+        f'<a href="#cat-{cat}" style="display:inline-flex;align-items:center;gap:0.4rem;background:{CATEGORY_COLORS.get(cat,"#3498DB")};color:#fff;padding:0.35rem 0.9rem;border-radius:20px;font-size:0.82rem;font-weight:700;text-decoration:none;">{CATEGORY_ICONS.get(cat,"🤖")} {CATEGORY_LABELS.get(cat, cat)} <span style="opacity:0.8">({cnt})</span></a>'
+        for cat, cnt in sorted(cats.items(), key=lambda x: -x[1])
+    )
+
+    # Cards grouped by category
+    by_cat: Dict[str, List] = {}
+    for c in all_comps:
+        cat = c.get('category', 'text-generation')
+        by_cat.setdefault(cat, []).append(c)
+
+    sections = ''
+    for cat in sorted(by_cat.keys()):
+        comps = by_cat[cat]
+        cat_label = CATEGORY_LABELS.get(cat, cat.replace('-', ' ').title())
+        cat_icon  = CATEGORY_ICONS.get(cat, '🤖')
+        cat_color = CATEGORY_COLORS.get(cat, '#3498DB')
+        cards = ''
+        for c in comps:
+            free_key = c['free_key']
+            diff = SETUP_DIFFICULTY.get(free_key, {'label': 'Easy'})
+            github_badge = ''
+            if c.get('free_github'):
+                github_badge = f'<span style="font-size:0.75rem;color:#718096;">⭐ {c.get("free_stars","")}</span>'
+            cards += f"""<a href="{c['slug']}/" class="comp-card" style="display:block;background:#fff;border:1px solid var(--border);border-radius:10px;padding:1.1rem;text-decoration:none;transition:box-shadow 0.15s;box-shadow:0 1px 4px rgba(0,0,0,0.06);" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.12)'" onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,0.06)'">
+  <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:{cat_color};margin-bottom:0.4rem;">{cat_icon} {cat_label}</div>
+  <div style="font-weight:800;color:#1A202C;font-size:0.95rem;margin-bottom:0.25rem;">{c['paid_tool']}</div>
+  <div style="font-size:0.78rem;color:#718096;margin-bottom:0.5rem;">vs <strong style="color:var(--green);">{c['free_tool']}</strong> (free) {github_badge}</div>
+  <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+    <span style="font-size:0.72rem;background:#FDE8E8;color:#C0392B;padding:2px 8px;border-radius:12px;">{c['paid_pricing']}</span>
+    <span style="font-size:0.72rem;">→</span>
+    <span style="font-size:0.72rem;background:#D5F5E3;color:var(--green);padding:2px 8px;border-radius:12px;">{c['free_pricing']}</span>
+  </div>
+  <div style="margin-top:0.5rem;font-size:0.75rem;color:#718096;">🛠️ Setup: {diff['label']}</div>
+</a>"""
+
+        sections += f"""<div id="cat-{cat}" style="margin-bottom:2.5rem;">
+  <h2 style="font-size:1.15rem;font-weight:800;color:var(--blue);margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid var(--blue-bg);">{cat_icon} {cat_label} <span style="font-size:0.8rem;font-weight:400;color:#718096;">({len(comps)} comparisons)</span></h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0.9rem;">
+    {cards}
+  </div>
+</div>"""
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{SITE_NAME} — {SITE_TAGLINE}</title>
+  <meta name="description" content="Find free AI alternatives to ChatGPT Plus, GitHub Copilot, Midjourney, ElevenLabs, and more. AI-researched comparisons updated daily. Save hundreds per month.">
+  <link rel="canonical" href="{SITE_BASE_URL}/">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="{SITE_NAME}">
+  <meta property="og:description" content="Free AI alternatives to paid tools. Updated daily.">
+  <meta property="og:url" content="{SITE_BASE_URL}/">
+  {get_adsense_snippet()}
+  {get_ga_snippet()}
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <style>
+    {css}
+    .index-hero {{ background: linear-gradient(135deg, #1F5C99 0%, #2980B9 100%); color: #fff; padding: 3.5rem 1.5rem 3rem; text-align: center; }}
+    .index-hero h1 {{ font-size: clamp(1.8rem, 5vw, 2.8rem); font-weight: 900; margin-bottom: 0.75rem; }}
+    .index-hero .sub {{ font-size: 1.1rem; opacity: 0.88; max-width: 580px; margin: 0 auto 2rem; }}
+    .stats-bar {{ display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }}
+    .stat {{ text-align: center; }}
+    .stat .num {{ font-size: 1.6rem; font-weight: 900; }}
+    .stat .lbl {{ font-size: 0.8rem; opacity: 0.75; }}
+    .search-box {{ max-width: 480px; margin: 1.5rem auto 0; display: flex; gap: 0.5rem; }}
+    .search-box input {{ flex: 1; padding: 0.7rem 1rem; border: none; border-radius: 8px; font-size: 0.95rem; }}
+    .search-box button {{ padding: 0.7rem 1.2rem; background: #27AE60; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }}
+  </style>
+</head>
+<body>
+<nav style="justify-content:space-between;">
+  <a href="." style="font-weight:800;font-size:1rem;">🤖 AI Tool Alternative Finder</a>
+  <div style="display:flex;gap:1rem;">
+    <a href="about/">About</a>
+    <a href="blog/">Blog</a>
+    <a href="contact/">Contact</a>
+  </div>
+</nav>
+
+<div class="index-hero">
+  <div style="display:inline-block;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);padding:0.3rem 1rem;border-radius:20px;font-size:0.8rem;margin-bottom:1rem;">
+    🆕 Updated {updated} · {len(all_comps)} comparisons
+  </div>
+  <h1>Stop Paying for AI Tools</h1>
+  <p class="sub">Find free alternatives to ChatGPT Plus, GitHub Copilot, Midjourney, ElevenLabs, and more. Run AI locally. Keep your data private.</p>
+  <div class="stats-bar">
+    <div class="stat"><div class="num">{len(all_comps)}</div><div class="lbl">Comparisons</div></div>
+    <div class="stat"><div class="num">{len(cats)}</div><div class="lbl">AI Categories</div></div>
+    <div class="stat"><div class="num">$0</div><div class="lbl">To Run This Site</div></div>
+    <div class="stat"><div class="num">100%</div><div class="lbl">Free Alternatives</div></div>
+  </div>
+  <div class="search-box">
+    <input type="text" id="search" placeholder="Search: ChatGPT, Copilot, Midjourney..." oninput="filterCards(this.value)">
+    <button onclick="filterCards(document.getElementById('search').value)">Search</button>
+  </div>
+</div>
+
+<!-- Category pills -->
+<div style="background:#fff;border-bottom:1px solid var(--border);padding:1rem 1.5rem;overflow-x:auto;">
+  <div style="display:flex;gap:0.6rem;flex-wrap:wrap;max-width:1100px;margin:0 auto;">
+    {cat_pills}
+  </div>
+</div>
+
+<div class="content" style="max-width:1100px;" id="results">
+  {sections}
+</div>
+
+{footer_html(updated)}
+
+<script>
+function filterCards(q) {{
+  q = q.toLowerCase().trim();
+  document.querySelectorAll('.comp-card').forEach(card => {{
+    const txt = card.textContent.toLowerCase();
+    card.parentElement.style.display = (!q || txt.includes(q)) ? '' : 'none';
+  }});
+  // hide empty section headers
+  document.querySelectorAll('[id^="cat-"]').forEach(sec => {{
+    const visible = Array.from(sec.querySelectorAll('.comp-card')).some(c => c.parentElement.style.display !== 'none');
+    sec.style.display = visible ? '' : 'none';
+  }});
+}}
+</script>
+{DARK_TOGGLE_JS}
+</body>
+</html>"""
+
+    (Path(site_dir) / 'index.html').write_text(html, encoding='utf-8')
+
+
+# ── Blog ──────────────────────────────────────────────────────────────────────
+def build_blog(all_comps: List[Dict], site_dir: str, updated: str):
+    css = get_css()
+
+    posts = [
+        {
+            'slug': 'free-local-ai-chatgpt-alternatives',
+            'title': 'Run ChatGPT Locally for Free: 5 Open-Source Alternatives (2025)',
+            'excerpt': "ChatGPT Plus costs $240/year. These free, local alternatives match 90% of the use cases — with zero subscription and complete privacy.",
+            'category': 'text-generation',
+            'date': updated,
+        },
+        {
+            'slug': 'free-github-copilot-alternatives',
+            'title': 'Best Free GitHub Copilot Alternatives for VS Code (2025)',
+            'excerpt': "GitHub Copilot charges $10-19/month per developer. Continue.dev + Ollama gives you the same inline completions — free, private, and open-source.",
+            'category': 'code-assistance',
+            'date': updated,
+        },
+        {
+            'slug': 'run-stable-diffusion-free-midjourney',
+            'title': 'How to Run Stable Diffusion Free (Midjourney Alternative Guide)',
+            'excerpt': "Midjourney has no free tier. Stable Diffusion runs on your own GPU with no limits. Here's a complete beginner setup guide.",
+            'category': 'image-generation',
+            'date': updated,
+        },
+        {
+            'slug': 'free-elevenlabs-tts-alternatives',
+            'title': 'Free ElevenLabs Alternatives: Voice Cloning Without Subscription (2025)',
+            'excerpt': "Coqui XTTS and Kokoro deliver near-ElevenLabs quality for free — running entirely on your hardware with no character limits.",
+            'category': 'voice-ai',
+            'date': updated,
+        },
+        {
+            'slug': 'whisper-vs-otter-descript-transcription',
+            'title': 'OpenAI Whisper vs Otter.ai vs Descript: Free Transcription in 2025',
+            'excerpt': "Whisper is free, runs locally, and transcribes 99 languages with near-human accuracy. Here's how to get started in 5 minutes.",
+            'category': 'audio-ai',
+            'date': updated,
+        },
+        {
+            'slug': 'ollama-guide-run-llms-locally',
+            'title': 'Complete Ollama Guide: Run LLMs Locally on Mac, Windows, Linux',
+            'excerpt': "Ollama is the easiest way to run Llama 3, Mistral, and Gemma locally. This guide covers setup, model selection, and Open WebUI integration.",
+            'category': 'text-generation',
+            'date': updated,
+        },
+    ]
+
+    post_cards = ''
+    for p in posts:
+        cat_color = CATEGORY_COLORS.get(p['category'], '#3498DB')
+        cat_label = CATEGORY_LABELS.get(p['category'], p['category'])
+        cat_icon  = CATEGORY_ICONS.get(p['category'], '🤖')
+        post_cards += f"""<div class="card" style="margin-bottom:1rem;">
+  <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:{cat_color};margin-bottom:0.5rem;">{cat_icon} {cat_label} · {p['date']}</div>
+  <h2 style="margin-top:0;font-size:1.1rem;"><a href="{p['slug']}/" style="color:var(--text);text-decoration:none;">{p['title']}</a></h2>
+  <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:0.75rem;">{p['excerpt']}</p>
+  <a href="{p['slug']}/" style="font-size:0.85rem;font-weight:600;color:var(--blue);">Read more →</a>
+</div>"""
+
+    blog_index = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog — {SITE_NAME}</title>
+  <meta name="description" content="Guides, comparisons, and how-tos for free AI tools. Run AI locally, self-host, and stop paying for subscriptions.">
+  <link rel="canonical" href="{SITE_BASE_URL}/blog/">
+  {get_ga_snippet()}
+  <link rel="icon" href="../favicon.ico" type="image/x-icon">
+  <style>{css}</style>
+</head>
+<body>
+{nav_html('Blog')}
+<div class="hero">
+  <h1>📖 Free AI Tools Blog</h1>
+  <p class="subtitle">Guides for running AI locally, saving money, and protecting your privacy.</p>
+</div>
+<div class="content">
+  {post_cards}
+</div>
+{footer_html(updated)}
+{DARK_TOGGLE_JS}
+</body>
+</html>"""
+
+    blog_dir = Path(site_dir) / 'blog'
+    blog_dir.mkdir(parents=True, exist_ok=True)
+    (blog_dir / 'index.html').write_text(blog_index, encoding='utf-8')
+
+    # Individual blog post pages (placeholder)
+    for p in posts:
+        post_dir = blog_dir / p['slug']
+        post_dir.mkdir(parents=True, exist_ok=True)
+        cat_color = CATEGORY_COLORS.get(p['category'], '#3498DB')
+        css_post = get_css(cat_color)
+
+        # Find related comparisons for this category
+        related_comps = [c for c in all_comps if c.get('category') == p['category']][:3]
+        related_links = ''.join(
+            f'<a class="related-link" href="../../{c["slug"]}/">{c["title"]}</a>'
+            for c in related_comps
+        )
+
+        post_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{p['title']} — {SITE_NAME}</title>
+  <meta name="description" content="{p['excerpt']}">
+  <link rel="canonical" href="{SITE_BASE_URL}/blog/{p['slug']}/">
+  {get_ga_snippet()}
+  <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+  <style>{css_post}</style>
+</head>
+<body>
+<nav>
+  <a href="../../">🤖 AI Tool Alternative Finder</a>
+  <span class="sep">/</span>
+  <a href="../">Blog</a>
+  <span class="sep">/</span>
+  <span style="color:#fff;opacity:0.7">{p['title'][:40]}...</span>
+</nav>
+<div class="hero">
+  <div class="category-badge">{CATEGORY_ICONS.get(p['category'],'🤖')} {CATEGORY_LABELS.get(p['category'], p['category'])}</div>
+  <h1 style="font-size:clamp(1.4rem,3vw,2rem);">{p['title']}</h1>
+  <p class="subtitle">{p['excerpt']}</p>
+</div>
+<div class="content">
+  <div class="card">
+    <p><em>Full article coming soon. In the meantime, explore our detailed tool comparisons below.</em></p>
+    <p style="margin-top:1rem;">{p['excerpt']}</p>
+  </div>
+  <div class="card">
+    <h2>Related Comparisons</h2>
+    <div class="related-grid">{related_links}</div>
+  </div>
+  <div class="card" style="text-align:center;padding:1.5rem;">
+    <a href="../../" style="display:inline-block;background:var(--blue);color:#fff;padding:0.65rem 1.75rem;border-radius:6px;text-decoration:none;font-weight:600;">← View All Free AI Alternatives</a>
+  </div>
+</div>
+{footer_html(updated)}
+{DARK_TOGGLE_JS}
+</body>
+</html>"""
+        (post_dir / 'index.html').write_text(post_html, encoding='utf-8')
+
+
+# ── Utility pages ─────────────────────────────────────────────────────────────
+def build_about(site_dir: str, all_comps: List[Dict], updated: str):
+    css = get_css()
+    (Path(site_dir) / 'about').mkdir(parents=True, exist_ok=True)
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — {SITE_NAME}</title>
+  <meta name="description" content="About AI Tool Alternative Finder. We compare free AI alternatives to paid tools, updated daily by an automated pipeline at $0/month.">
+  <link rel="canonical" href="{SITE_BASE_URL}/about/">
+  {get_ga_snippet()}
+  <link rel="icon" href="../favicon.ico" type="image/x-icon">
+  <style>{css}</style>
+</head>
+<body>
+{nav_html('About')}
+<div class="hero">
+  <h1>About AI Tool Alternative Finder</h1>
+  <p class="subtitle">Why we built this — and how it works.</p>
+</div>
+<div class="content">
+  <div class="card">
+    <h2>Our Mission</h2>
+    <p>AI Tool Alternative Finder exists to help developers, creators, and businesses stop paying for AI subscriptions they don't need. We believe powerful AI should be accessible to everyone — not just those who can afford $20–100/month per tool.</p>
+    <p style="margin-top:0.75rem;">We provide detailed, AI-researched comparisons of free alternatives to popular paid AI tools. Every comparison covers pricing, privacy implications, setup difficulty, and a step-by-step migration guide.</p>
+
+    <h2>How It Works</h2>
+    <p>This site is built and maintained by a fully automated pipeline running every day at 6 AM UTC:</p>
+    <ul>
+      <li><strong>Content generation</strong> — AI writes fresh comparisons using Groq (Llama 3.3) with Gemini Flash as fallback</li>
+      <li><strong>Static site build</strong> — Python generates all {len(all_comps)} comparison pages, alternatives pages, and the blog</li>
+      <li><strong>Auto-deploy</strong> — GitHub Actions publishes to GitHub Pages automatically</li>
+    </ul>
+    <p style="margin-top:0.75rem;"><strong>Total infrastructure cost: $0/month.</strong> All APIs are on free tiers.</p>
+
+    <h2>Our Stack</h2>
+    <ul>
+      <li>Python 3.11 — content generation and site building</li>
+      <li>GitHub Actions — daily automation pipeline</li>
+      <li>GitHub Pages — free static hosting</li>
+      <li>Groq API (free) — primary LLM for content</li>
+      <li>Google Gemini Flash (free) — fallback LLM</li>
+      <li>Static HTML/CSS/JS — zero JavaScript frameworks</li>
+    </ul>
+    <p style="margin-top:0.75rem;">The full source code is <a href="https://github.com/aiopentec/ai-tool-alternative-finder" target="_blank" rel="noopener">available on GitHub</a>.</p>
+
+    <h2>Accuracy &amp; Updates</h2>
+    <p>All comparison content is AI-researched and updated daily. We strive for accuracy but recommend verifying current pricing and features at each tool's official website before making decisions. Community corrections are welcome — open a GitHub issue.</p>
+
+    <h2>Affiliate Policy</h2>
+    <p>We may earn small affiliate commissions from some paid tool links on this site. This never influences our rankings or comparisons — free alternatives are always ranked on merit.</p>
+  </div>
+</div>
+{footer_html(updated)}
+{DARK_TOGGLE_JS}
+</body>
+</html>"""
+    (Path(site_dir) / 'about' / 'index.html').write_text(html, encoding='utf-8')
+
+
+def build_contact(site_dir: str, updated: str):
+    css = get_css()
+    (Path(site_dir) / 'contact').mkdir(parents=True, exist_ok=True)
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — {SITE_NAME}</title>
+  <link rel="canonical" href="{SITE_BASE_URL}/contact/">
+  {get_ga_snippet()}
+  <link rel="icon" href="../favicon.ico" type="image/x-icon">
+  <style>{css}</style>
+</head>
+<body>
+{nav_html('Contact')}
+<div class="hero"><h1>Contact Us</h1></div>
+<div class="content">
+  <div class="card">
+    <h2>Get In Touch</h2>
+    <ul style="list-style:none;margin:0;padding:0;">
+      <li style="margin-bottom:1rem;">🔧 <strong>Suggest a comparison</strong> — know a paid AI tool with a great free alternative? <a href="https://github.com/aiopentec/ai-tool-alternative-finder/issues" target="_blank" rel="noopener">Open a GitHub issue</a></li>
+      <li style="margin-bottom:1rem;">⚠️ <strong>Report inaccurate info</strong> — pricing changes frequently. <a href="https://github.com/aiopentec/ai-tool-alternative-finder/issues" target="_blank" rel="noopener">Report via GitHub</a></li>
+      <li style="margin-bottom:1rem;">🤝 <strong>Partnerships</strong> — building a free AI tool? We'd love to cover it.</li>
+      <li>🐛 <strong>Technical issues</strong> — broken pages or display problems? Open a GitHub issue.</li>
     </ul>
   </div>
-  <table><thead><tr><th>Category</th><th>Paid Tool</th><th>Free Alternative</th><th>Savings</th><th>Links</th></tr></thead><tbody>{rows}</tbody></table>
-  <p style="margin-top:32px"><a href="../index.html">← All Comparisons</a></p>
-</div>"""
-    write("changelog/index.html", page_shell(
-        f"Changelog — {SITE_TITLE}",
-        f"All {len(COMPARISONS)} AI tool comparisons auto-updated daily.",
-        body, root="../", canonical="changelog/"
-    ))
+</div>
+{footer_html(updated)}
+{DARK_TOGGLE_JS}
+</body>
+</html>"""
+    (Path(site_dir) / 'contact' / 'index.html').write_text(html, encoding='utf-8')
 
-# ─────────────────────────────────────────────────────────────────────────────
-# STATS
-# ─────────────────────────────────────────────────────────────────────────────
 
-def build_stats():
-    by_cat = {}
-    for c in COMPARISONS:
-        by_cat.setdefault(c["category"], []).append(c)
-    cat_rows = "".join(
-        f"<tr><td>{next(x['category_emoji'] for x in v)} {k}</td><td>{len(v)}</td><td>{len(v)}</td></tr>"
-        for k, v in sorted(by_cat.items())
-    )
-    unique_paid = len(set(c["paid_tool"] for c in COMPARISONS))
-    body = f"""<header><div class="container"><h1>📊 Site Statistics</h1><p>Live stats — updated {BUILD_DATE}</p></div></header>
-<div class="container">
-  <div class="stats" style="justify-content:flex-start;margin:24px 0">
-    <div class="stat"><div class="num">{len(COMPARISONS)}</div><div class="lbl">Comparisons</div></div>
-    <div class="stat"><div class="num">{len(COMPARISONS)}</div><div class="lbl">Migration Guides</div></div>
-    <div class="stat"><div class="num">{unique_paid}</div><div class="lbl">Alternatives-to Pages</div></div>
-    <div class="stat"><div class="num">{len(CATEGORIES)}</div><div class="lbl">Categories</div></div>
-    <div class="stat"><div class="num">$0</div><div class="lbl">Monthly Cost</div></div>
+def build_privacy(site_dir: str, updated: str):
+    css = get_css()
+    (Path(site_dir) / 'privacy').mkdir(parents=True, exist_ok=True)
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — {SITE_NAME}</title>
+  <link rel="canonical" href="{SITE_BASE_URL}/privacy/">
+  {get_ga_snippet()}
+  <link rel="icon" href="../favicon.ico" type="image/x-icon">
+  <style>{css}</style>
+</head>
+<body>
+{nav_html('Privacy Policy')}
+<div class="hero"><h1>Privacy Policy</h1></div>
+<div class="content">
+  <div class="card">
+    <h2>Data Collection</h2>
+    <p>This site uses Google Analytics to collect anonymous traffic data (page views, referrers, device types). No personally identifiable information is collected without explicit consent.</p>
+    <h2>Cookies</h2>
+    <p>We use a single localStorage key to remember your dark/light mode preference. No tracking cookies.</p>
+    <h2>Affiliate Links</h2>
+    <p>Some links to paid tools on this site are affiliate links. Clicking them may set a cookie on the vendor's site. We earn a small commission if you subscribe — this does not affect our rankings.</p>
+    <h2>Email Newsletter</h2>
+    <p>If you subscribe to our newsletter, your email is stored by our email provider. You can unsubscribe at any time via the link in any email.</p>
+    <h2>Contact</h2>
+    <p>Questions? Open a <a href="https://github.com/aiopentec/ai-tool-alternative-finder/issues" target="_blank" rel="noopener">GitHub issue</a>.</p>
+    <p style="margin-top:1rem;color:var(--text-muted);font-size:0.85rem;">Last updated: {updated}</p>
   </div>
-  <h2>Coverage by Category</h2>
-  <table><thead><tr><th>Category</th><th>Comparisons</th><th>Migration Guides</th></tr></thead><tbody>{cat_rows}</tbody></table>
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:24px">
-    <strong>📎 Cite This Data</strong>
-    <p style="color:var(--muted);font-size:13px;margin-top:6px">Free to cite with attribution: <em>AI Tool Alternative Finder ({BUILD_DATE}). Retrieved from {SITE_URL}/stats/</em></p>
+</div>
+{footer_html(updated)}
+{DARK_TOGGLE_JS}
+</body>
+</html>"""
+    (Path(site_dir) / 'privacy' / 'index.html').write_text(html, encoding='utf-8')
+
+
+def build_404(site_dir: str):
+    css = get_css()
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 Not Found — {SITE_NAME}</title>
+  <style>{css}</style>
+</head>
+<body>
+<nav><a href="/">🤖 AI Tool Alternative Finder</a></nav>
+<div class="hero">
+  <h1>404 — Page Not Found</h1>
+  <p class="subtitle">The comparison you're looking for might have moved or been renamed.</p>
+</div>
+<div class="content" style="text-align:center;">
+  <div class="card">
+    <p style="margin-bottom:1.5rem;">Let's get you back on track.</p>
+    <a href="/" style="display:inline-block;background:var(--blue);color:#fff;padding:0.65rem 1.75rem;border-radius:6px;text-decoration:none;font-weight:600;">← Browse All Comparisons</a>
   </div>
-  <p style="margin-top:32px"><a href="../index.html">← Home</a></p>
-</div>"""
-    write("stats/index.html", page_shell(f"Stats — {SITE_TITLE}", "Statistics for AI Tool Alternative Finder.", body, root="../", canonical="stats/"))
+</div>
+</body>
+</html>"""
+    (Path(site_dir) / '404.html').write_text(html, encoding='utf-8')
 
-# ─────────────────────────────────────────────────────────────────────────────
-# BLOG
-# ─────────────────────────────────────────────────────────────────────────────
 
-BLOG_POSTS = [
-    {"slug":"chatgpt-alternatives","title":f"7 Free ChatGPT Alternatives That Work in {BUILD_DATE[:4]}","intro":"ChatGPT Plus costs $20/month. Here are the best free alternatives — and when each one makes sense.","comps":["chatgpt-plus-vs-openrouter","chatgpt-plus-vs-mistral-free"],"tags":["AI Chat","ChatGPT","Free"]},
-    {"slug":"github-copilot-alternatives","title":f"GitHub Copilot Is $10/Month — These Free Alternatives Are Almost As Good ({BUILD_DATE[:4]})","intro":"We tested three free AI coding assistants that cover the same use cases as GitHub Copilot.","comps":["github-copilot-vs-codeium","github-copilot-vs-continue-dev"],"tags":["AI Coding","Copilot","Free"]},
-    {"slug":"midjourney-alternatives","title":f"Best Free Midjourney Alternatives in {BUILD_DATE[:4]} — Tested","intro":"Midjourney costs $10–$60/month. Stable Diffusion runs locally for free. Here's the full breakdown.","comps":["midjourney-vs-stable-diffusion","dalle3-vs-stable-diffusion"],"tags":["AI Image","Midjourney","Stable Diffusion"]},
-    {"slug":"free-ai-api-alternatives","title":f"Stop Paying OpenAI Bills — These Free Alternatives Work ({BUILD_DATE[:4]})","intro":"OpenAI API costs add up fast. Ollama and Groq offer free or dramatically cheaper inference.","comps":["openai-api-vs-ollama","openai-api-vs-groq"],"tags":["AI API","OpenAI","Free"]},
-    {"slug":"elevenlabs-alternatives","title":f"ElevenLabs vs Free TTS Alternatives: What Works in {BUILD_DATE[:4]}","intro":"ElevenLabs charges $5–$99/month for text-to-speech. Coqui TTS runs locally with no limits.","comps":["elevenlabs-vs-coqui-tts"],"tags":["AI Voice","ElevenLabs","TTS"]},
+def build_sitemap(all_comps: List[Dict], site_dir: str):
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+    urls = [f'<url><loc>{SITE_BASE_URL}/</loc><changefreq>daily</changefreq><priority>1.0</priority><lastmod>{today}</lastmod></url>']
+
+    # Comparison pages
+    for c in all_comps:
+        urls.append(f'<url><loc>{SITE_BASE_URL}/{c["slug"]}/</loc><changefreq>weekly</changefreq><priority>0.8</priority><lastmod>{today}</lastmod></url>')
+
+    # Alternatives-to pages
+    paid_tools = {}
+    for c in all_comps:
+        paid_tools.setdefault(c['paid_tool'], []).append(c)
+    for paid_tool in paid_tools:
+        slug = paid_tool.lower().replace(' ', '-').replace('.', '').replace('(', '').replace(')', '')
+        urls.append(f'<url><loc>{SITE_BASE_URL}/alternatives-to-{slug}/</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{today}</lastmod></url>')
+
+    # Static pages
+    for page in ['about', 'contact', 'privacy', 'blog']:
+        urls.append(f'<url><loc>{SITE_BASE_URL}/{page}/</loc><changefreq>monthly</changefreq><priority>0.5</priority><lastmod>{today}</lastmod></url>')
+
+    sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    sitemap += '\n'.join(urls)
+    sitemap += '\n</urlset>'
+    (Path(site_dir) / 'sitemap.xml').write_text(sitemap, encoding='utf-8')
+
+    # robots.txt
+    robots = f"User-agent: *\nAllow: /\nSitemap: {SITE_BASE_URL}/sitemap.xml\n"
+    (Path(site_dir) / 'robots.txt').write_text(robots, encoding='utf-8')
+
+
+# ── FALLBACK hardcoded comparisons (for zero-cache builds) ───────────────────
+FALLBACK_COMPARISONS = [
+    {
+        'id': 'chatgpt-plus-vs-open-webui',
+        'slug': 'chatgpt-plus-vs-open-webui',
+        'title': 'ChatGPT Plus vs Open WebUI',
+        'paid_tool': 'ChatGPT Plus',
+        'paid_key': 'chatgpt-plus',
+        'free_tool': 'Open WebUI',
+        'free_key': 'open-webui',
+        'category': 'text-generation',
+        'paid_pricing': '$20/month',
+        'free_pricing': 'Free (self-hosted)',
+        'paid_website': 'https://chat.openai.com',
+        'free_website': 'https://openwebui.com',
+        'free_github': 'open-webui/open-webui',
+        'free_stars': '45k',
+        'comparison_markdown': """## Overview
+
+ChatGPT Plus gives access to GPT-4o for $20/month. Open WebUI is a free, open-source interface that runs the same class of AI models locally — with complete privacy and no monthly fees.
+
+## Key Differences
+
+- **Cost**: ChatGPT Plus costs $20/month; Open WebUI + Ollama is free forever
+- **Privacy**: Open WebUI runs locally — no conversation data ever leaves your machine
+- **Models**: Open WebUI supports Llama 3, Mistral, Gemma, Phi-3, and more
+- **Internet**: ChatGPT needs a connection; Open WebUI works fully offline
+- **Setup**: ChatGPT is instant; Open WebUI takes ~15 minutes with Docker
+
+## Pricing Comparison
+
+| Aspect | ChatGPT Plus | Open WebUI |
+|--------|-------------|------------|
+| Base cost | $20/month | Free |
+| License | Proprietary | MIT |
+| Data privacy | Sent to OpenAI | Local only |
+| Cost at 10 users | ~$200/month | $0/month |
+| Cost at 100 users | ~$2,000/month | $0/month |
+
+## When to Choose Each
+
+**Choose ChatGPT Plus if:** You need GPT-4o's cutting-edge reasoning, DALL-E 3 image generation, real-time web browsing, or the plugin ecosystem with zero local setup.
+
+**Choose Open WebUI if:** Privacy matters, your usage is high-volume, you process sensitive documents, or you want unlimited AI usage at zero ongoing cost.
+
+## Migration / Getting Started
+
+1. Install Ollama: `curl -fsSL https://ollama.com/install.sh | sh` then `ollama pull llama3.3`
+2. Launch Open WebUI: `docker run -d -p 3000:8080 --add-host=host.docker.internal:host-gateway ghcr.io/open-webui/open-webui:main`
+3. Open http://localhost:3000 — identical chat experience, zero cost, 100% private.""",
+        'provider': 'fallback',
+        'generated_at': datetime.utcnow().isoformat() + 'Z',
+        'status': 'fallback',
+    },
+    {
+        'id': 'github-copilot-vs-continue-dev',
+        'slug': 'github-copilot-vs-continue-dev',
+        'title': 'GitHub Copilot vs Continue',
+        'paid_tool': 'GitHub Copilot',
+        'paid_key': 'github-copilot',
+        'free_tool': 'Continue',
+        'free_key': 'continue-dev',
+        'category': 'code-assistance',
+        'paid_pricing': '$10–$19/month',
+        'free_pricing': 'Free',
+        'paid_website': 'https://github.com/features/copilot',
+        'free_website': 'https://continue.dev',
+        'free_github': 'continuedev/continue',
+        'free_stars': '18k',
+        'comparison_markdown': """## Overview
+
+GitHub Copilot charges $10–19/month per developer for AI code completions. Continue is a free, open-source IDE extension that connects to any LLM — including local Ollama models — for the same inline completions and codebase chat.
+
+## Key Differences
+
+- **Cost**: Copilot costs $10–19/month per developer; Continue is completely free
+- **Privacy**: Continue + Ollama keeps all code local — critical for proprietary codebases
+- **Models**: Continue works with Ollama, Claude, GPT-4, Gemini, or any OpenAI-compatible API
+- **IDE support**: Both support VS Code and JetBrains; Continue also supports Neovim
+- **Quality**: Copilot's cloud models are strong; local Qwen2.5-Coder is competitive for most tasks
+
+## Pricing Comparison
+
+| Aspect | GitHub Copilot | Continue |
+|--------|---------------|---------|
+| Base cost | $10–19/month/developer | Free |
+| License | Proprietary | Apache 2.0 |
+| Code privacy | Sent to GitHub servers | Local only |
+| 10 developers | ~$100–190/month | $0/month |
+| 50 developers | ~$500–950/month | $0/month |
+
+## When to Choose Each
+
+**Choose GitHub Copilot if:** Your team is on GitHub Enterprise, needs the strongest cloud model quality, and code privacy is not a primary concern.
+
+**Choose Continue if:** You work on sensitive or proprietary codebases, want to eliminate per-seat AI costs, or prefer to self-host your coding AI with full model control.
+
+## Migration / Getting Started
+
+1. Install Continue from the VS Code Marketplace or JetBrains Plugin Hub
+2. Install Ollama: `ollama pull qwen2.5-coder:7b` for a strong local coding model
+3. Open Continue settings (cmd+shift+P → Continue: Open Config) and set Ollama as provider""",
+        'provider': 'fallback',
+        'generated_at': datetime.utcnow().isoformat() + 'Z',
+        'status': 'fallback',
+    },
+    {
+        'id': 'midjourney-vs-fooocus',
+        'slug': 'midjourney-vs-fooocus',
+        'title': 'Midjourney vs Fooocus',
+        'paid_tool': 'Midjourney',
+        'paid_key': 'midjourney',
+        'free_tool': 'Fooocus',
+        'free_key': 'fooocus',
+        'category': 'image-generation',
+        'paid_pricing': '$10–$60/month',
+        'free_pricing': 'Free (local)',
+        'paid_website': 'https://midjourney.com',
+        'free_website': 'https://github.com/lllyasviel/Fooocus',
+        'free_github': 'lllyasviel/Fooocus',
+        'free_stars': '41k',
+        'comparison_markdown': """## Overview
+
+Midjourney has no free tier and charges $10–60/month for AI image generation. Fooocus is an open-source alternative inspired by Midjourney's simplicity — just type a prompt and get high-quality images locally, with no subscription and no per-image cost.
+
+## Key Differences
+
+- **Cost**: Midjourney costs $10–60/month with image limits; Fooocus is free with unlimited generations
+- **Privacy**: Local generation means prompts and images never reach external servers
+- **Simplicity**: Fooocus is designed to be as simple as Midjourney — minimal settings, great defaults
+- **Internet**: Midjourney runs in Discord; Fooocus works fully offline after model download
+- **Quality**: Midjourney v6 has a distinctive aesthetic; Fooocus using SDXL is highly competitive
+
+## Pricing Comparison
+
+| Aspect | Midjourney | Fooocus |
+|--------|-----------|---------|
+| Base cost | $10–$60/month | Free |
+| Image limits | 200–unlimited/month | Unlimited |
+| Data privacy | Images processed on Midjourney servers | 100% local |
+| License | Proprietary | GPL 3.0 |
+
+## When to Choose Each
+
+**Choose Midjourney if:** You want Midjourney's signature artistic aesthetic, have no GPU, or don't want to manage any local software.
+
+**Choose Fooocus if:** You want unlimited, private image generation, have a GPU with 4GB+ VRAM, and want Midjourney-level quality without subscription costs.
+
+## Migration / Getting Started
+
+1. Install Python 3.10+, then clone: `git clone https://github.com/lllyasviel/Fooocus`
+2. Run `python entry_with_update.py` — it auto-downloads SDXL models on first launch
+3. Open http://localhost:7865 in your browser — type a prompt and generate immediately""",
+        'provider': 'fallback',
+        'generated_at': datetime.utcnow().isoformat() + 'Z',
+        'status': 'fallback',
+    },
+    {
+        'id': 'elevenlabs-vs-coqui-tts',
+        'slug': 'elevenlabs-vs-coqui-tts',
+        'title': 'ElevenLabs vs Coqui XTTS',
+        'paid_tool': 'ElevenLabs',
+        'paid_key': 'elevenlabs',
+        'free_tool': 'Coqui XTTS',
+        'free_key': 'coqui-tts',
+        'category': 'voice-ai',
+        'paid_pricing': '$5–$99/month',
+        'free_pricing': 'Free (local)',
+        'paid_website': 'https://elevenlabs.io',
+        'free_website': 'https://coqui.ai',
+        'free_github': 'coqui-ai/TTS',
+        'free_stars': '34k',
+        'comparison_markdown': """## Overview
+
+ElevenLabs is the gold standard for AI voice synthesis at up to $99/month with character limits. Coqui XTTS is an open-source alternative that clones voices from a 3-second clip and runs entirely on your machine — no API costs, no limits, no data sharing.
+
+## Key Differences
+
+- **Cost**: ElevenLabs costs $5–99/month with character limits; Coqui TTS is free with no limits
+- **Voice cloning**: Both clone voices from short clips; Coqui XTTS v2 is production-quality
+- **Privacy**: Local processing means voice samples and audio stay on your hardware
+- **Languages**: Coqui XTTS supports 16 languages; ElevenLabs supports 32
+- **Setup**: ElevenLabs is browser-based; Coqui requires Python and ~4GB for models
+
+## Pricing Comparison
+
+| Aspect | ElevenLabs | Coqui XTTS |
+|--------|-----------|-----------|
+| Base cost | $5–$99/month | Free |
+| Character limits | 30k–2M/month | Unlimited |
+| Voice cloning | Yes | Yes |
+| Data privacy | Audio sent to ElevenLabs | 100% local |
+
+## When to Choose Each
+
+**Choose ElevenLabs if:** You need 32-language support, real-time streaming, the widest voice library, or a simple browser-based workflow with no local GPU.
+
+**Choose Coqui XTTS if:** You produce large audio volumes, handle sensitive content (legal, medical), have a Python environment, and want zero ongoing costs.
+
+## Migration / Getting Started
+
+1. Install: `pip install TTS torch`
+2. Test: `tts --model_name tts_models/multilingual/multi-dataset/xtts_v2 --text "Hello world" --language en --out_path output.wav`
+3. Voice clone: add `--speaker_wav your_3sec_clip.wav` to clone any voice from a short sample""",
+        'provider': 'fallback',
+        'generated_at': datetime.utcnow().isoformat() + 'Z',
+        'status': 'fallback',
+    },
+    {
+        'id': 'openai-api-vs-localai',
+        'slug': 'openai-api-vs-localai',
+        'title': 'OpenAI API vs LocalAI',
+        'paid_tool': 'OpenAI API',
+        'paid_key': 'openai-api',
+        'free_tool': 'LocalAI',
+        'free_key': 'localai',
+        'category': 'ai-api',
+        'paid_pricing': '$0.002–$0.06/1K tokens',
+        'free_pricing': 'Free (self-hosted)',
+        'paid_website': 'https://platform.openai.com',
+        'free_website': 'https://localai.io',
+        'free_github': 'mudler/LocalAI',
+        'free_stars': '24k',
+        'comparison_markdown': """## Overview
+
+The OpenAI API charges per token — costs that scale rapidly with volume. LocalAI is a free, open-source, OpenAI API-compatible server that runs locally, giving you a drop-in replacement with zero per-request cost.
+
+## Key Differences
+
+- **Cost**: OpenAI API costs $0.002–$0.06/1K tokens; LocalAI has zero per-request cost
+- **Compatibility**: LocalAI is a drop-in replacement — change the base URL and existing code works
+- **Privacy**: All inference is local — no prompts or responses sent to OpenAI
+- **Models**: LocalAI supports any GGUF model plus image generation and TTS backends
+- **Latency**: Cloud API is faster for large requests; local performance depends on hardware
+
+## Pricing Comparison
+
+| Aspect | OpenAI API | LocalAI |
+|--------|-----------|---------|
+| Cost model | Per-token | Free |
+| 1M tokens | $2–$60 | $0 |
+| Privacy | Sent to OpenAI | 100% local |
+| API compatibility | OpenAI native | Drop-in compatible |
+
+## When to Choose Each
+
+**Choose OpenAI API if:** You need GPT-4o-level quality, have latency-sensitive production workloads, or don't have GPU hardware available.
+
+**Choose LocalAI if:** You're building privacy-sensitive applications, have high API volume, or need zero inference costs for internal tools.
+
+## Migration / Getting Started
+
+1. Deploy: `docker run -p 8080:8080 -v $PWD/models:/build/models localai/localai:latest`
+2. Download a model: `curl http://localhost:8080/models/apply -d '{"id":"llama-3.2-3b"}'`
+3. Update base URL in your code to `http://localhost:8080/v1` — all existing OpenAI SDK calls work immediately""",
+        'provider': 'fallback',
+        'generated_at': datetime.utcnow().isoformat() + 'Z',
+        'status': 'fallback',
+    },
 ]
 
-def build_blog():
-    comp_by_slug = {c["slug"]: c for c in COMPARISONS}
 
-    post_cards = ""
-    for post in BLOG_POSTS:
-        tags_html = "".join(f'<span style="background:rgba(88,166,255,.15);color:var(--accent);padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">{t}</span>' for t in post["tags"])
-        post_cards += f"""<div class="card" style="flex-direction:column;gap:10px">
-  <div style="display:flex;gap:6px;flex-wrap:wrap">{tags_html}</div>
-  <div style="font-weight:700;font-size:15px">{post['title']}</div>
-  <div style="font-size:13px;color:var(--muted)">{post['intro']}</div>
-  <a href="{post['slug']}/index.html" style="color:var(--accent);font-size:13px;font-weight:600;margin-top:auto">Read →</a>
-</div>"""
+# ── Main build function ───────────────────────────────────────────────────────
+def build_site(cache_dir: str = '.cache/comparisons', site_dir: str = 'site'):
+    cache = Path(cache_dir)
+    site  = Path(site_dir)
+    site.mkdir(parents=True, exist_ok=True)
 
-    blog_body = f"""<header><div class="container"><h1>📝 Blog</h1><p style="color:var(--muted)">Guides on replacing paid AI tools with free alternatives.</p></div></header>
-<div class="container"><div class="grid" style="padding-top:24px">{post_cards}</div></div>"""
-    write("blog/index.html", page_shell(f"Blog — {SITE_TITLE}", "Guides on switching from paid AI tools to free alternatives.", blog_body, root="../", canonical="blog/"))
+    updated = datetime.utcnow().strftime('%B %d, %Y')
+    logger.info(f'🔨 Building site → {site}')
 
-    for post in BLOG_POSTS:
-        comps = [comp_by_slug[s] for s in post["comps"] if s in comp_by_slug]
-        comp_cards = ""
-        for c in comps:
-            pk = paid_key(c); fk = free_key(c)
-            comp_cards += f"""<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-  <div><strong>{c['paid_tool']}</strong> <span style="color:var(--muted)">vs</span> <strong style="color:var(--green)">{c['free_tool']}</strong>
-  <div style="font-size:12px;color:var(--muted);margin-top:4px">{c['savings']}</div></div>
-  <div style="display:flex;gap:6px">
-    <a href="../../{c['slug']}/index.html" style="background:var(--accent);color:#fff;padding:5px 12px;border-radius:5px;font-size:12px;font-weight:600">Compare →</a>
-    <a href="../../migrate-{pk}-to-{fk}/index.html" style="background:rgba(63,185,80,.15);color:var(--green);padding:5px 12px;border-radius:5px;font-size:12px;font-weight:600;border:1px solid rgba(63,185,80,.3)">Migrate →</a>
-  </div>
-</div>"""
-        tags_html = "".join(f'<span style="background:rgba(88,166,255,.15);color:var(--accent);padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600">{t}</span>' for t in post["tags"])
-        schema = f'''{{"@context":"https://schema.org","@type":"Article","headline":"{post['title']}","description":"{post['intro']}","dateModified":"{BUILD_DATE_ISO}","publisher":{{"@type":"Organization","name":"{SITE_TITLE}","url":"{SITE_URL}"}}}}'''
-        post_body = f"""<div class="container" style="padding-top:24px">
-  <p style="font-size:13px;color:var(--muted);margin-bottom:16px"><a href="../../index.html">🤖 Home</a> / <a href="../index.html">Blog</a></p>
-  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">{tags_html}</div>
-  <h1 style="font-size:1.6rem;margin-bottom:12px">{post['title']}</h1>
-  <p style="color:var(--muted);font-size:13px;margin-bottom:24px">📅 {BUILD_DATE} &nbsp;·&nbsp; 🤖 AI-assisted</p>
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px">
-    <p style="font-size:15px;line-height:1.7">{post['intro']}</p>
-  </div>
-  <h2 style="margin-bottom:16px">The Comparisons</h2>
-  {comp_cards}
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin:24px 0">
-    <strong>💰 Calculate your savings</strong>
-    <p style="color:var(--muted);font-size:13px;margin-top:6px">Enter your team size and see how much you save.</p>
-    <a href="../../savings-calculator/index.html" style="display:inline-block;margin-top:10px;background:var(--accent);color:#fff;padding:7px 16px;border-radius:6px;font-size:13px;font-weight:600">Open Calculator →</a>
-  </div>
-  <p style="margin-top:20px"><a href="../index.html" style="color:var(--muted);font-size:13px">← All Blog Posts</a></p>
-</div>"""
-        write(f"blog/{post['slug']}/index.html", page_shell(
-            post["title"] + f" — {SITE_TITLE}", post["intro"], post_body,
-            root="../../", canonical=f"blog/{post['slug']}/", schema=schema, page_type="article"
-        ))
+    # Load comparisons from cache
+    all_comps: List[Dict] = []
+    if cache.exists():
+        for fp in sorted(cache.glob('*.json')):
+            try:
+                with open(fp) as f:
+                    comp = json.load(f)
+                if isinstance(comp, list):
+                    all_comps.extend(comp)
+                else:
+                    all_comps.append(comp)
+            except Exception as e:
+                logger.warning(f'  ⚠️  Could not read {fp}: {e}')
 
-# ─────────────────────────────────────────────────────────────────────────────
-# UTILITY PAGES
-# ─────────────────────────────────────────────────────────────────────────────
+    if not all_comps:
+        logger.warning('  ⚠️  No cached comparisons found — using fallback data')
+        all_comps = FALLBACK_COMPARISONS
 
-def build_about():
-    body = f"""<header><div class="container"><h1>About AI Tool Alternative Finder</h1></div></header>
-<div class="container" style="max-width:720px;padding-bottom:48px">
-  <h2>What is this?</h2>
-  <p>AI Tool Alternative Finder is a free directory comparing popular paid AI tools to free alternatives. Every comparison includes pricing, feature comparisons, setup guides, and migration instructions — auto-updated daily.</p>
-  <h2 style="margin-top:24px">How does it work?</h2>
-  <p>A Python pipeline runs daily on GitHub Actions: <code>generate.py</code> calls the Groq API (Llama 3.3) to write comparison content, then <code>build.py</code> generates all HTML pages from that data. Total infrastructure cost: $0/month.</p>
-  <h2 style="margin-top:24px">Why?</h2>
-  <p>AI tool subscriptions add up fast. ChatGPT Plus, Copilot, Midjourney, ElevenLabs together can cost $100–$300/month. Excellent free alternatives exist for almost every use case — this site helps you find them.</p>
-  <p style="margin-top:32px"><a href="../index.html">← View All Comparisons</a></p>
-</div>"""
-    write("about/index.html", page_shell(f"About — {SITE_TITLE}", "About AI Tool Alternative Finder.", body, root="../", canonical="about/"))
+    # Deduplicate by slug
+    seen = set()
+    unique: List[Dict] = []
+    for c in all_comps:
+        if c['slug'] not in seen:
+            seen.add(c['slug'])
+            unique.append(c)
+    all_comps = unique
 
-def build_privacy():
-    body = f"""<header><div class="container"><h1>Privacy Policy</h1></div></header>
-<div class="container" style="max-width:720px;padding-bottom:48px">
-  <p style="color:var(--muted)">Last updated: {BUILD_DATE}</p>
-  <h2>Data Collection</h2>
-  <p>AI Tool Alternative Finder uses Google Analytics (GA4) for aggregate traffic analysis and may display Google AdSense ads. We do not collect personal data directly.</p>
-  <h2 style="margin-top:24px">Cookies</h2>
-  <p>Google Analytics and AdSense use cookies. You can opt out via your browser settings or Google's ad settings.</p>
-  <h2 style="margin-top:24px">Content Disclaimer</h2>
-  <p>All comparison content is AI-generated for informational purposes. Verify current pricing at official vendor websites before making decisions.</p>
-  <p style="margin-top:32px"><a href="../index.html">← Home</a></p>
-</div>"""
-    write("privacy/index.html", page_shell(f"Privacy Policy — {SITE_TITLE}", "Privacy Policy for AI Tool Alternative Finder.", body, root="../", canonical="privacy/"))
+    logger.info(f'  📄 {len(all_comps)} comparisons loaded')
 
-def build_contact():
-    body = f"""<header><div class="container"><h1>Contact</h1></div></header>
-<div class="container" style="max-width:600px;padding-bottom:48px">
-  <p>Suggestions, errors, or outdated pricing? Open a GitHub Issue.</p>
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;margin-top:20px">
-    <h2 style="margin-bottom:16px">GitHub Issues</h2>
-    <a href="https://github.com/aiopentec/ai-tool-alternative-finder/issues/new" target="_blank"
-       style="display:inline-block;background:var(--accent);color:#fff;padding:10px 20px;border-radius:6px;font-weight:600;margin-top:8px;font-size:14px">Open a GitHub Issue →</a>
-  </div>
-  <p style="margin-top:32px"><a href="../index.html">← Home</a></p>
-</div>"""
-    write("contact/index.html", page_shell(f"Contact — {SITE_TITLE}", "Contact AI Tool Alternative Finder.", body, root="../", canonical="contact/"))
+    # Build comparison pages
+    for i, comp in enumerate(all_comps):
+        try:
+            build_comparison_page(comp, all_comps, updated, str(site))
+            if i % 10 == 0:
+                logger.info(f'  📄 Built {i+1}/{len(all_comps)} comparison pages')
+        except Exception as e:
+            logger.error(f'  ❌ Error building {comp.get("slug","?")}: {e}')
 
-# ─────────────────────────────────────────────────────────────────────────────
-# EXTRA FILES
-# ─────────────────────────────────────────────────────────────────────────────
+    # Build alternatives-to pages (one per paid tool)
+    paid_tool_map: Dict[str, List[Dict]] = {}
+    for c in all_comps:
+        paid_tool_map.setdefault(c['paid_tool'], []).append(c)
+    for paid_tool, comps in paid_tool_map.items():
+        try:
+            build_alternatives_page(paid_tool, comps, str(site), updated)
+        except Exception as e:
+            logger.error(f'  ❌ Error building alternatives-to-{paid_tool}: {e}')
+    logger.info(f'  📄 Built {len(paid_tool_map)} alternatives-to pages')
 
-def build_robots():
-    write("robots.txt", f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n")
+    # Build category pages (simple redirect to homepage anchors for now)
+    cat_dir = site / 'categories'
+    cat_dir.mkdir(exist_ok=True)
+    for cat in CATEGORY_ICONS:
+        c_dir = cat_dir / cat
+        c_dir.mkdir(exist_ok=True)
+        redirect = f'<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=../../#{cat}"></head><body></body></html>'
+        (c_dir / 'index.html').write_text(redirect)
 
-def build_ads_txt():
-    write("ads.txt", "google.com, pub-4633315697698743, DIRECT, f08c47fec0942fa0\n")
+    # Build homepage
+    build_index(all_comps, str(site), updated)
+    logger.info('  🏠 Built homepage')
 
-def build_404():
-    body = f"""<div style="text-align:center;padding:80px 20px">
-  <h1 style="font-size:4rem;color:var(--accent)">404</h1>
-  <p style="color:var(--muted);margin:16px 0 32px">This page doesn't exist.</p>
-  <a href="{SITE_URL}/" style="background:var(--accent);color:#fff;padding:10px 24px;border-radius:6px;font-weight:600">← Back to All Comparisons</a>
-</div>"""
-    write("404.html", page_shell(f"Page Not Found — {SITE_TITLE}", "Page not found.", body, canonical="404"))
+    # Build blog
+    build_blog(all_comps, str(site), updated)
+    logger.info('  📖 Built blog')
 
-# ─────────────────────────────────────────────────────────────────────────────
-# SITEMAP
-# ─────────────────────────────────────────────────────────────────────────────
+    # Build utility pages
+    build_about(str(site), all_comps, updated)
+    build_contact(str(site), updated)
+    build_privacy(str(site), updated)
+    build_404(str(site))
+    logger.info('  📄 Built utility pages')
 
-def build_sitemap(migration_slugs, alt_slugs, blog_slugs):
-    urls = [
-        f"  <url><loc>{SITE_URL}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>",
-        f"  <url><loc>{SITE_URL}/savings-calculator/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>",
-        f"  <url><loc>{SITE_URL}/changelog/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>",
-        f"  <url><loc>{SITE_URL}/stats/</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>",
-        f"  <url><loc>{SITE_URL}/blog/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>",
-        f"  <url><loc>{SITE_URL}/about/</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>",
-        f"  <url><loc>{SITE_URL}/privacy/</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>",
-        f"  <url><loc>{SITE_URL}/contact/</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>",
-    ]
-    for c in COMPARISONS:
-        urls.append(f"  <url><loc>{SITE_URL}/{c['slug']}/</loc><changefreq>weekly</changefreq><priority>0.9</priority><lastmod>{BUILD_DATE_ISO}</lastmod></url>")
-    for s in migration_slugs:
-        urls.append(f"  <url><loc>{SITE_URL}/{s}/</loc><changefreq>monthly</changefreq><priority>0.8</priority><lastmod>{BUILD_DATE_ISO}</lastmod></url>")
-    for s in alt_slugs:
-        urls.append(f"  <url><loc>{SITE_URL}/{s}/</loc><changefreq>weekly</changefreq><priority>0.9</priority><lastmod>{BUILD_DATE_ISO}</lastmod></url>")
-    for s in blog_slugs:
-        urls.append(f"  <url><loc>{SITE_URL}/blog/{s}/</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{BUILD_DATE_ISO}</lastmod></url>")
+    # Build sitemap + robots
+    build_sitemap(all_comps, str(site))
+    logger.info('  🗺️  Built sitemap.xml + robots.txt')
 
-    write("sitemap.xml",
-          '<?xml version="1.0" encoding="UTF-8"?>\n'
-          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-          + "\n".join(urls) + "\n</urlset>")
+    # Copy favicon if it exists
+    for favicon_src in [Path('favicon.ico'), Path('favicon.png')]:
+        if favicon_src.exists():
+            shutil.copy(favicon_src, site / favicon_src.name)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────────────────────────────────────
+    # Count files
+    total = sum(1 for _ in site.rglob('*.html'))
+    logger.info('=' * 60)
+    logger.info(f'  ✅ Site built: {total} HTML files in {site}')
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--check", action="store_true", help="Show data source and exit")
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Build AI Tool Alternative Finder static site')
+    parser.add_argument('--cache', default='.cache/comparisons', help='Cache directory')
+    parser.add_argument('--out', default='site', help='Output directory')
     args = parser.parse_args()
-
-    if args.check:
-        if CACHE_DIR.exists() and list(CACHE_DIR.glob("*.json")):
-            print(f"✅ Will use AI-generated cache: {len(list(CACHE_DIR.glob('*.json')))} files in {CACHE_DIR}")
-        else:
-            print(f"📋 Will use hardcoded fallback: {len(FALLBACK_COMPARISONS)} comparisons")
-            print(f"   Run 'python scripts/generate.py' to generate AI content")
-        return
-
-    paid_groups = {}
-    for c in COMPARISONS:
-        paid_groups.setdefault(c["paid_tool"], []).append(c)
-
-    unique_paid = len(paid_groups)
-
-    print(f"\n🤖 AI Tool Alternative Finder — Build")
-    print(f"   Date:             {BUILD_DATE}")
-    print(f"   Comparisons:      {len(COMPARISONS)}")
-    print(f"   Categories:       {len(CATEGORIES)}")
-    print(f"   Migration pages:  {len(COMPARISONS)}")
-    print(f"   Alternatives-to:  {unique_paid}")
-    print(f"   Blog posts:       {len(BLOG_POSTS)}")
-    estimated = 1 + len(COMPARISONS)*2 + unique_paid + len(BLOG_POSTS) + 1 + 8 + 3
-    print(f"   Estimated total:  ~{estimated} files\n")
-
-    print("📄 Building index...")
-    build_index()
-
-    print(f"\n📄 Building {len(COMPARISONS)} comparison pages...")
-    for c in COMPARISONS:
-        build_comparison(c)
-
-    print(f"\n📦 Building {len(COMPARISONS)} migration pages...")
-    migration_slugs = [build_migration(c) for c in COMPARISONS]
-
-    print(f"\n🎯 Building {unique_paid} alternatives-to pages...")
-    alt_slugs = [build_alternatives_to(name, comps) for name, comps in paid_groups.items()]
-
-    print(f"\n📝 Building blog...")
-    build_blog()
-
-    print("\n📄 Building utility pages...")
-    build_calculator()
-    build_changelog()
-    build_stats()
-    build_about()
-    build_privacy()
-    build_contact()
-
-    print("\n📄 Building extra files...")
-    build_robots()
-    build_ads_txt()
-    build_404()
-
-    print("\n🗺️  Building sitemap...")
-    build_sitemap(migration_slugs, alt_slugs, [p["slug"] for p in BLOG_POSTS])
-
-    total = (1 + len(COMPARISONS)*2 + len(alt_slugs)
-             + len(BLOG_POSTS) + 1 + len(CATEGORIES) + 8 + 3)
-    print(f"\n✅ Build complete — {total} files generated\n")
-
-if __name__ == "__main__":
-    main()
+    build_site(args.cache, args.out)
