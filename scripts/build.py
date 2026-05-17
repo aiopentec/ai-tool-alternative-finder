@@ -755,7 +755,7 @@ def build_alternatives_page(paid_tool: str, comps: List[Dict], site_dir: str, up
 
     cards = ''
     for c in comps:
-        free_key = c['free_key']
+        free_key = c.get('free_key', c.get('slug','').split('-vs-')[-1] if '-vs-' in c.get('slug','') else '')
         diff = SETUP_DIFFICULTY.get(free_key, {'label': 'Easy', 'time': '~15 mins', 'method': 'See docs'})
         github_link = ''
         if c.get('free_github'):
@@ -837,7 +837,7 @@ def build_index(all_comps: List[Dict], site_dir: str, updated: str):
         cat_color = CATEGORY_COLORS.get(cat, '#3498DB')
         cards = ''
         for c in comps:
-            free_key = c['free_key']
+            free_key = c.get('free_key', c.get('slug','').split('-vs-')[-1] if '-vs-' in c.get('slug','') else '')
             diff = SETUP_DIFFICULTY.get(free_key, {'label': 'Easy'})
             github_badge = ''
             if c.get('free_github'):
@@ -1583,6 +1583,34 @@ def build_site(cache_dir: str = '.cache/comparisons', site_dir: str = 'site'):
     if not all_comps:
         logger.warning('  ⚠️  No cached comparisons found — using fallback data')
         all_comps = FALLBACK_COMPARISONS
+
+    # Normalize: patch missing fields that old v2 cache files may not have
+    def normalize_comp(c: Dict) -> Dict:
+        slug = c.get('slug') or c.get('id', '')
+        paid_name = c.get('paid_tool', '')
+        free_name = c.get('free_tool', '')
+        # Derive keys from slug if missing (slug format: paid-key-vs-free-key)
+        if not c.get('paid_key') or not c.get('free_key'):
+            if '-vs-' in slug:
+                parts = slug.split('-vs-', 1)
+                c.setdefault('paid_key', parts[0])
+                c.setdefault('free_key', parts[1])
+            else:
+                c.setdefault('paid_key', paid_name.lower().replace(' ', '-').replace('.', ''))
+                c.setdefault('free_key', free_name.lower().replace(' ', '-').replace('.', ''))
+        c.setdefault('title',        f'{paid_name} vs {free_name}')
+        c.setdefault('category',     'text-generation')
+        c.setdefault('paid_pricing', 'See website')
+        c.setdefault('free_pricing', 'Free')
+        c.setdefault('paid_website', '')
+        c.setdefault('free_website', '')
+        c.setdefault('free_github',  '')
+        c.setdefault('free_stars',   '')
+        c.setdefault('comparison_markdown', c.get('content', c.get('body', '')))
+        c.setdefault('slug', slug)
+        return c
+
+    all_comps = [normalize_comp(c) for c in all_comps]
 
     # Deduplicate by slug
     seen = set()
