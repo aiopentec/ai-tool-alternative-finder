@@ -6,7 +6,7 @@
   <title>Tabnine Pro vs Tabby (2026) — Free AI Alternative</title>
   <meta name="description" content="Is Tabby a good free alternative to Tabnine Pro? Detailed comparison of pricing ($12/month vs Free (self-hosted)), privacy, setup difficulty, and migration guide. Save money by switching to a free AI tool.">
   <meta name="keywords" content="Tabnine Pro free alternative, Tabby vs Tabnine Pro, free Tabnine Pro alternative, Tabnine Pro open source">
-  <link rel="canonical" href="https://aiopentec.github.io/ai-tool-alternative-finder/tabnine-pro-vs-tabby/">
+  <link rel="canonical" href="https://aiopentec.github.io/ai-tool-alternative-finder/tabnine-pro-vs-tabby/" />
   <meta name="robots" content="index, follow">
   <meta property="og:type" content="article">
   <meta property="og:title" content="Tabnine Pro vs Tabby (2026)">
@@ -22,7 +22,7 @@
     "@type": "Article",
     "headline": "Tabnine Pro vs Tabby (2026)",
     "description": "Is Tabby a good free alternative to Tabnine Pro? Detailed comparison of pricing ($12/month vs Free (self-hosted)), privacy, setup difficulty, and migration guide. Save money by switching to a free AI tool.",
-    "dateModified": "2026-05-18T10:07:38Z",
+    "dateModified": "2026-05-18T11:45:31Z",
     "publisher": {"@type": "Organization", "name": "AI Tool Alternative Finder", "url": "https://aiopentec.github.io/ai-tool-alternative-finder"}
   }
   </script>
@@ -196,7 +196,172 @@
       .card { padding: 1.25rem; }
       .verdict-grid { grid-template-columns: 1fr; }
     }
-</style>
+
+    /* ══════════════════════════════════════════════════════
+       DARK MODE — full override
+       All variables remapped; no hardcoded colours below this line
+       survive into dark contexts unpatched.
+    ══════════════════════════════════════════════════════ */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:           #0f0e0c;
+        --surface:      #1a1916;
+        --surface-2:    #222019;
+        --border:       #2e2b26;
+        --text:         #e8e4dd;
+        --muted:        #9a9288;
+        --accent:       #60a5fa;
+        --accent-light: #1e2d45;
+        --header:       #0a0908;
+        --header-text:  #e8e4dd;
+
+        /* Status palettes — light enough on dark bg */
+        --red-light:    #2d1515;  --red-border:    #5c2020;
+        --amber-light:  #2d2010;  --amber-border:  #5c4020;
+        --green-light:  #0f2d18;  --green-border:  #1a5c30;
+        --purple-light: #1e1535;  --purple-border: #3d2a70;
+        --teal-light:   #0d2626;  --teal-border:   #1a4d4d;
+      }
+
+      /* ── Prose ── */
+      body { color: var(--text); background: var(--bg); }
+      p, li { color: #c8c4bc; }
+      h1, h2, h3, h4 { color: var(--text); }
+      a { color: var(--accent); }
+      a:hover { color: #93c5fd; }
+
+      /* ── Cards & surfaces ── */
+      .card, .card-sm,
+      .comparison-card, .tool-card,
+      .alt-card, .feature-card { background: #1a1916; border-color: var(--border); }
+
+      /* ── Tables ── */
+      table th { background: #222019; color: var(--muted); }
+      table td { color: #c8c4bc; border-color: var(--border); }
+      table tr:hover td { background: #222019; }
+      .data-table th { background: var(--surface-2); }
+      .data-table td { color: #c8c4bc; }
+
+      /* ── Filter / category buttons ── */
+      .filter-btn, .category-btn {
+        background: #222019;
+        color: var(--muted);
+        border-color: var(--border);
+      }
+      .filter-btn.active, .category-btn.active {
+        background: #1e2d45;
+        color: var(--accent);
+        border-color: #3b82f6;
+      }
+
+      /* ── Tool comparison hero ── */
+      .vs-box, .comparison-hero, .tool-vs-wrapper {
+        background: #1a1916;
+        border-color: var(--border);
+      }
+      .tool-name, .tool-price { color: var(--text); }
+      .tool-badge-free { background: var(--green-light); color: #86efac; }
+      .tool-badge-paid { background: var(--red-light);   color: #fca5a5; }
+
+      /* ── Verdict / callout boxes ── */
+      .verdict-approve, .verdict-switch {
+        background: var(--green-light);
+        border-color: var(--green-border);
+        color: #86efac;
+      }
+      .verdict-reject, .verdict-stay {
+        background: var(--red-light);
+        border-color: var(--red-border);
+        color: #fca5a5;
+      }
+      .verdict-caution, .verdict-warning {
+        background: var(--amber-light);
+        border-color: var(--amber-border);
+        color: #fcd34d;
+      }
+      .callout       { background: var(--accent-light); color: #93c5fd; border-left-color: var(--accent); }
+      .callout-amber { background: var(--amber-light);  color: #fcd34d; }
+      .callout-green { background: var(--green-light);  color: #86efac; }
+
+      /* ── Badges ── */
+      .badge-red    { background: var(--red-light);    color: #fca5a5; border-color: var(--red-border); }
+      .badge-amber  { background: var(--amber-light);  color: #fcd34d; border-color: var(--amber-border); }
+      .badge-green  { background: var(--green-light);  color: #86efac; border-color: var(--green-border); }
+      .badge-blue   { background: var(--accent-light); color: #93c5fd; border-color: #3b82f6; }
+      .badge-purple { background: var(--purple-light); color: #c4b5fd; border-color: var(--purple-border); }
+      .badge-teal   { background: var(--teal-light);   color: #5eead4; border-color: var(--teal-border); }
+
+      /* ── Inline code ── */
+      code {
+        background: #2a2825;
+        border-color: #3a3630;
+        color: #e8e4dd;
+      }
+      pre {
+        background: #0a0908;
+        border-color: rgba(255,255,255,0.05);
+        color: #e5e1d8;
+      }
+
+      /* ── Nav / TOC bar ── */
+      .toc-bar, nav {
+        background: #1a1916;
+        border-color: var(--border);
+      }
+      .toc-link, .nav-link { color: var(--muted); }
+      .toc-link:hover, .nav-link:hover { color: var(--accent); }
+
+      /* ── Difficulty dots ── */
+      .difficulty-dot-filled  { background: var(--accent); }
+      .difficulty-dot-empty   { background: var(--border); }
+
+      /* ── Pros / cons lists ── */
+      .pros-list li::before { color: #86efac; }
+      .cons-list li::before { color: #fca5a5; }
+
+      /* ── Pricing table highlight ── */
+      .price-free  { color: #86efac; }
+      .price-paid  { color: #fca5a5; }
+      .price-highlight { background: #0f2d18; }
+
+      /* ── Related comparisons ── */
+      .related-link, .related-card {
+        background: #1a1916;
+        border-color: var(--border);
+        color: var(--text);
+      }
+      .related-link:hover, .related-card:hover {
+        border-color: var(--accent);
+        background: #1e2d45;
+      }
+
+      /* ── Email / newsletter widget ── */
+      .newsletter-box, .email-widget {
+        background: #1a1916;
+        border-color: var(--border);
+      }
+      .newsletter-box input[type="email"] {
+        background: #222019;
+        border-color: var(--border);
+        color: var(--text);
+      }
+
+      /* ── Footer ── */
+      footer { background: var(--header); }
+      footer p, footer a { color: rgba(255,255,255,0.35); }
+      footer a:hover { color: rgba(255,255,255,0.65); }
+
+      /* ── Homepage hero ── */
+      .hero-sub { color: rgba(232,228,221,0.55); }
+      .hero-stat-num { color: var(--accent); }
+      .hero-stat-label { color: rgba(255,255,255,0.35); }
+
+      /* ── Scrollbar (webkit) ── */
+      ::-webkit-scrollbar { background: #1a1916; }
+      ::-webkit-scrollbar-thumb { background: #2e2b26; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #3a3630; }
+    }
+    </style>
 </head>
 <body>
 
@@ -279,14 +444,14 @@
 
   <div class="card">
     <h2>Overview</h2>
-Tabnine Pro and Tabby are AI-powered coding assistants designed to enhance developer productivity. Tabnine Pro is a commercial tool offered by Tabnine, while Tabby is a free, self-hosted alternative. Developers and teams seeking cost-effective, private, and customizable coding assistance may benefit from switching between these tools.
+Tabnine Pro and Tabby are AI-powered coding tools designed to assist developers with code completion and suggestions. Both tools aim to increase productivity, but they differ in their approach to cost, privacy, and deployment. Developers and teams looking for a self-hosted, cost-effective solution may benefit from switching to Tabby.
 <h2>Key Differences</h2>
 <ul>
-<li>Cost: Tabnine Pro requires a monthly subscription, whereas Tabby is free and self-hosted.</li>
-<li>Privacy/Data: Tabnine Pro sends data to vendor servers, while Tabby processes data locally, ensuring greater privacy and control.</li>
-<li>Setup Difficulty: Tabby may require more technical expertise to set up and maintain due to its self-hosted nature, whereas Tabnine Pro offers a more straightforward, cloud-based experience.</li>
-<li>Quality Parity: Both tools offer high-quality code completion and suggestions, with some variations in their AI models and training data.</li>
-<li>Ecosystem: Tabnine Pro integrates with a broader range of development environments and tools, while Tabby's ecosystem is more limited but still extensible.</li>
+<li>Cost: Tabby is free and self-hosted, while Tabnine Pro requires a monthly subscription.</li>
+<li>Privacy/Data: Tabnine Pro sends data to vendor servers, whereas Tabby processes data locally.</li>
+<li>Setup Difficulty: Tabby requires more technical setup due to its self-hosted nature, while Tabnine Pro is easier to set up.</li>
+<li>Quality Parity: Both tools offer high-quality code suggestions, but Tabby's quality may vary depending on the specific model and setup.</li>
+<li>Ecosystem: Tabnine Pro integrates with a wider range of editors and IDEs, while Tabby's ecosystem is still growing.</li>
 </ul>
 <h2>Pricing Comparison</h2>
 <div class="table-wrapper"><table>
@@ -294,32 +459,33 @@ Tabnine Pro and Tabby are AI-powered coding assistants designed to enhance devel
 <tr><td>Base Cost</td><td>$12/month</td><td>Free (self-hosted)</td></tr>
 <tr><td>License</td><td>Proprietary</td><td>Apache 2.0</td></tr>
 <tr><td>Data privacy</td><td>Sent to vendor servers</td><td>Local / self-hosted</td></tr>
-<tr><td>Cost at 10 users/month</td><td>$120/month</td><td>$0 (self-hosted)</td></tr>
-<tr><td>Cost at 100 users/month</td><td>$1,200/month</td><td>$0 (self-hosted)</td></tr>
+<tr><td>Cost at 10 users/month</td><td>$120/month</td><td>$0/month</td></tr>
+<tr><td>Cost at 100 users/month</td><td>$1,200/month</td><td>$0/month</td></tr>
 </tbody></table></div>
 <h2>Pros and Cons</h2>
 <h3>Tabnine Pro</h3>
 <ul>
-<li>Convenient, cloud-based setup and maintenance</li>
-<li>Seamless integration with popular development environments</li>
-<li>Regular updates and improvements from the vendor</li>
-<li>Potential data privacy concerns due to cloud-based processing</li>
+<li>Easy to set up and integrate with existing workflows</li>
+<li>Wide range of integrations with popular editors and IDEs</li>
+<li>High-quality code suggestions</li>
+<li>Regular updates and support from the vendor</li>
 </ul>
 <h3>Tabby</h3>
 <ul>
-<li>Free and self-hosted, reducing costs and increasing data control</li>
-<li>Customizable and extensible, with a growing community of developers</li>
-<li>Local data processing ensures greater privacy and security</li>
-<li>Requires more technical expertise to set up and maintain</li>
+<li>Free and self-hosted, reducing costs and increasing data privacy</li>
+<li>Customizable and extensible due to its open-source nature</li>
+<li>Local data processing reduces reliance on vendor servers</li>
+<li>Community-driven development and support</li>
 </ul>
 <h2>When to Choose Each</h2>
-Tabnine Pro is ideal for developers and teams who prioritize convenience, ease of use, and seamless integration with their existing workflows, and are willing to compromise on data privacy and costs. Tabby, on the other hand, is suited for developers and teams who value data privacy, customization, and cost-effectiveness, and are willing to invest time and effort into setting up and maintaining their own self-hosted instance.
+Tabnine Pro is ideal for individual developers or small teams who prioritize ease of use and integration with existing workflows. It's also suitable for those who don't mind paying a monthly subscription for a high-quality, vendor-supported tool. 
+Tabby is ideal for larger teams, enterprises, or organizations with strict data privacy requirements. It's also suitable for developers who value customization, extensibility, and community-driven development.
 <h2>Migration / Getting Started</h2>
 To switch from Tabnine Pro to Tabby, follow these steps:
 <ol>
-<li>Evaluate your development environment and tools to ensure compatibility with Tabby.</li>
-<li>Set up a self-hosted Tabby instance, either on your local machine or a remote server, and configure it according to your needs.</li>
-<li>Import your existing codebase and settings into Tabby, and explore its customization options to tailor the tool to your workflow and preferences.</li>
+<li>Set up a self-hosted Tabby instance on your local machine or server.</li>
+<li>Configure Tabby to work with your preferred editor or IDE, which may require additional setup and customization.</li>
+<li>Train Tabby's model using your existing codebase or a public dataset to ensure high-quality code suggestions.</li>
 </ol>
   </div>
 

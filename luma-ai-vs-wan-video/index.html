@@ -6,7 +6,7 @@
   <title>Luma Dream Machine vs Wan2.1 (2026) — Free AI Alternative</title>
   <meta name="description" content="Is Wan2.1 a good free alternative to Luma Dream Machine? Detailed comparison of pricing ($9.99–$99.99/month vs Free (local)), privacy, setup difficulty, and migration guide. Save money by switching to a free AI tool.">
   <meta name="keywords" content="Luma Dream Machine free alternative, Wan2.1 vs Luma Dream Machine, free Luma Dream Machine alternative, Luma Dream Machine open source">
-  <link rel="canonical" href="https://aiopentec.github.io/ai-tool-alternative-finder/luma-ai-vs-wan-video/">
+  <link rel="canonical" href="https://aiopentec.github.io/ai-tool-alternative-finder/luma-ai-vs-wan-video/" />
   <meta name="robots" content="index, follow">
   <meta property="og:type" content="article">
   <meta property="og:title" content="Luma Dream Machine vs Wan2.1 (2026)">
@@ -22,7 +22,7 @@
     "@type": "Article",
     "headline": "Luma Dream Machine vs Wan2.1 (2026)",
     "description": "Is Wan2.1 a good free alternative to Luma Dream Machine? Detailed comparison of pricing ($9.99–$99.99/month vs Free (local)), privacy, setup difficulty, and migration guide. Save money by switching to a free AI tool.",
-    "dateModified": "2026-05-18T10:07:38Z",
+    "dateModified": "2026-05-18T11:45:31Z",
     "publisher": {"@type": "Organization", "name": "AI Tool Alternative Finder", "url": "https://aiopentec.github.io/ai-tool-alternative-finder"}
   }
   </script>
@@ -196,7 +196,172 @@
       .card { padding: 1.25rem; }
       .verdict-grid { grid-template-columns: 1fr; }
     }
-</style>
+
+    /* ══════════════════════════════════════════════════════
+       DARK MODE — full override
+       All variables remapped; no hardcoded colours below this line
+       survive into dark contexts unpatched.
+    ══════════════════════════════════════════════════════ */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:           #0f0e0c;
+        --surface:      #1a1916;
+        --surface-2:    #222019;
+        --border:       #2e2b26;
+        --text:         #e8e4dd;
+        --muted:        #9a9288;
+        --accent:       #60a5fa;
+        --accent-light: #1e2d45;
+        --header:       #0a0908;
+        --header-text:  #e8e4dd;
+
+        /* Status palettes — light enough on dark bg */
+        --red-light:    #2d1515;  --red-border:    #5c2020;
+        --amber-light:  #2d2010;  --amber-border:  #5c4020;
+        --green-light:  #0f2d18;  --green-border:  #1a5c30;
+        --purple-light: #1e1535;  --purple-border: #3d2a70;
+        --teal-light:   #0d2626;  --teal-border:   #1a4d4d;
+      }
+
+      /* ── Prose ── */
+      body { color: var(--text); background: var(--bg); }
+      p, li { color: #c8c4bc; }
+      h1, h2, h3, h4 { color: var(--text); }
+      a { color: var(--accent); }
+      a:hover { color: #93c5fd; }
+
+      /* ── Cards & surfaces ── */
+      .card, .card-sm,
+      .comparison-card, .tool-card,
+      .alt-card, .feature-card { background: #1a1916; border-color: var(--border); }
+
+      /* ── Tables ── */
+      table th { background: #222019; color: var(--muted); }
+      table td { color: #c8c4bc; border-color: var(--border); }
+      table tr:hover td { background: #222019; }
+      .data-table th { background: var(--surface-2); }
+      .data-table td { color: #c8c4bc; }
+
+      /* ── Filter / category buttons ── */
+      .filter-btn, .category-btn {
+        background: #222019;
+        color: var(--muted);
+        border-color: var(--border);
+      }
+      .filter-btn.active, .category-btn.active {
+        background: #1e2d45;
+        color: var(--accent);
+        border-color: #3b82f6;
+      }
+
+      /* ── Tool comparison hero ── */
+      .vs-box, .comparison-hero, .tool-vs-wrapper {
+        background: #1a1916;
+        border-color: var(--border);
+      }
+      .tool-name, .tool-price { color: var(--text); }
+      .tool-badge-free { background: var(--green-light); color: #86efac; }
+      .tool-badge-paid { background: var(--red-light);   color: #fca5a5; }
+
+      /* ── Verdict / callout boxes ── */
+      .verdict-approve, .verdict-switch {
+        background: var(--green-light);
+        border-color: var(--green-border);
+        color: #86efac;
+      }
+      .verdict-reject, .verdict-stay {
+        background: var(--red-light);
+        border-color: var(--red-border);
+        color: #fca5a5;
+      }
+      .verdict-caution, .verdict-warning {
+        background: var(--amber-light);
+        border-color: var(--amber-border);
+        color: #fcd34d;
+      }
+      .callout       { background: var(--accent-light); color: #93c5fd; border-left-color: var(--accent); }
+      .callout-amber { background: var(--amber-light);  color: #fcd34d; }
+      .callout-green { background: var(--green-light);  color: #86efac; }
+
+      /* ── Badges ── */
+      .badge-red    { background: var(--red-light);    color: #fca5a5; border-color: var(--red-border); }
+      .badge-amber  { background: var(--amber-light);  color: #fcd34d; border-color: var(--amber-border); }
+      .badge-green  { background: var(--green-light);  color: #86efac; border-color: var(--green-border); }
+      .badge-blue   { background: var(--accent-light); color: #93c5fd; border-color: #3b82f6; }
+      .badge-purple { background: var(--purple-light); color: #c4b5fd; border-color: var(--purple-border); }
+      .badge-teal   { background: var(--teal-light);   color: #5eead4; border-color: var(--teal-border); }
+
+      /* ── Inline code ── */
+      code {
+        background: #2a2825;
+        border-color: #3a3630;
+        color: #e8e4dd;
+      }
+      pre {
+        background: #0a0908;
+        border-color: rgba(255,255,255,0.05);
+        color: #e5e1d8;
+      }
+
+      /* ── Nav / TOC bar ── */
+      .toc-bar, nav {
+        background: #1a1916;
+        border-color: var(--border);
+      }
+      .toc-link, .nav-link { color: var(--muted); }
+      .toc-link:hover, .nav-link:hover { color: var(--accent); }
+
+      /* ── Difficulty dots ── */
+      .difficulty-dot-filled  { background: var(--accent); }
+      .difficulty-dot-empty   { background: var(--border); }
+
+      /* ── Pros / cons lists ── */
+      .pros-list li::before { color: #86efac; }
+      .cons-list li::before { color: #fca5a5; }
+
+      /* ── Pricing table highlight ── */
+      .price-free  { color: #86efac; }
+      .price-paid  { color: #fca5a5; }
+      .price-highlight { background: #0f2d18; }
+
+      /* ── Related comparisons ── */
+      .related-link, .related-card {
+        background: #1a1916;
+        border-color: var(--border);
+        color: var(--text);
+      }
+      .related-link:hover, .related-card:hover {
+        border-color: var(--accent);
+        background: #1e2d45;
+      }
+
+      /* ── Email / newsletter widget ── */
+      .newsletter-box, .email-widget {
+        background: #1a1916;
+        border-color: var(--border);
+      }
+      .newsletter-box input[type="email"] {
+        background: #222019;
+        border-color: var(--border);
+        color: var(--text);
+      }
+
+      /* ── Footer ── */
+      footer { background: var(--header); }
+      footer p, footer a { color: rgba(255,255,255,0.35); }
+      footer a:hover { color: rgba(255,255,255,0.65); }
+
+      /* ── Homepage hero ── */
+      .hero-sub { color: rgba(232,228,221,0.55); }
+      .hero-stat-num { color: var(--accent); }
+      .hero-stat-label { color: rgba(255,255,255,0.35); }
+
+      /* ── Scrollbar (webkit) ── */
+      ::-webkit-scrollbar { background: #1a1916; }
+      ::-webkit-scrollbar-thumb { background: #2e2b26; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #3a3630; }
+    }
+    </style>
 </head>
 <body>
 
@@ -279,14 +444,14 @@
 
   <div class="card">
     <h2>Overview</h2>
-Luma Dream Machine and Wan2.1 are AI tools designed for different user needs, with Luma Dream Machine offering a proprietary solution and Wan2.1 providing an open-source alternative. Users of Luma Dream Machine may benefit from switching to Wan2.1 for cost savings and enhanced privacy. Wan2.1 is ideal for users who value data control and customization.
+Luma Dream Machine and Wan2.1 are AI tools that provide unique solutions for users, with Luma Dream Machine offering a proprietary platform and Wan2.1 providing an open-source alternative. Users who value data privacy and cost savings may benefit from switching to Wan2.1, while those already invested in the Luma ecosystem may prefer to stay with Luma Dream Machine. Both tools cater to different needs, and the choice ultimately depends on individual priorities.
 <h2>Key Differences</h2>
 <ul>
-<li>Cost: Luma Dream Machine has a monthly subscription fee, while Wan2.1 is free for local use.</li>
-<li>Privacy/Data: Luma Dream Machine sends data to vendor servers, whereas Wan2.1 allows for local processing and self-hosting.</li>
-<li>Setup Difficulty: Wan2.1 may require more technical expertise for setup due to its open-source nature.</li>
-<li>Quality Parity: Both tools offer comparable quality, but Wan2.1's open-source community may drive faster innovation.</li>
-<li>Ecosystem: Luma Dream Machine has a more established ecosystem, while Wan2.1's ecosystem is growing with community support.</li>
+<li>Cost: Wan2.1 is free for local use, while Luma Dream Machine has a monthly subscription fee.</li>
+<li>Privacy/Data: Wan2.1 processes data locally, whereas Luma Dream Machine sends data to vendor servers.</li>
+<li>Setup Difficulty: Wan2.1 may require more technical expertise for self-hosting, while Luma Dream Machine offers a more streamlined setup process.</li>
+<li>Quality Parity: Both tools provide comparable quality, but Wan2.1's open-source nature allows for community-driven improvements.</li>
+<li>Ecosystem: Luma Dream Machine integrates with other Luma products, while Wan2.1 offers flexibility and customization options.</li>
 </ul>
 <h2>Pricing Comparison</h2>
 <div class="table-wrapper"><table>
@@ -294,32 +459,33 @@ Luma Dream Machine and Wan2.1 are AI tools designed for different user needs, wi
 <tr><td>Base Cost</td><td>$9.99–$99.99/month</td><td>Free (local)</td></tr>
 <tr><td>License</td><td>Proprietary</td><td>Apache 2.0</td></tr>
 <tr><td>Data privacy</td><td>Sent to vendor servers</td><td>Local / self-hosted</td></tr>
-<tr><td>Cost at 10 users/month</td><td>$99.90–$999.90</td><td>$0</td></tr>
-<tr><td>Cost at 100 users/month</td><td>$999–$9,999</td><td>$0</td></tr>
+<tr><td>Cost at 10 users/month</td><td>$99.99/month</td><td>$0/month</td></tr>
+<tr><td>Cost at 100 users/month</td><td>$999.90/month</td><td>$0/month</td></tr>
 </tbody></table></div>
 <h2>Pros and Cons</h2>
-Luma Dream Machine:
+<h3>Luma Dream Machine</h3>
 <ul>
-<li>Easy to set up and use</li>
-<li>Established ecosystem with good support</li>
-<li>High-quality output</li>
-<li>Regular updates with new features</li>
+<li>Easy setup and integration with other Luma products</li>
+<li>Streamlined user interface and experience</li>
+<li>Regular updates and support from the vendor</li>
+<li>Limited control over data privacy and processing</li>
 </ul>
-Wan2.1:
+<h3>Wan2.1</h3>
 <ul>
-<li>Free for local use with no subscription fees</li>
-<li>Enhanced data privacy with local processing</li>
-<li>Customizable and open-source</li>
-<li>Community-driven development</li>
+<li>Free for local use and self-hosting</li>
+<li>Complete control over data privacy and processing</li>
+<li>Customization options and community-driven development</li>
+<li>Steeper learning curve and technical requirements for setup</li>
 </ul>
 <h2>When to Choose Each</h2>
-Luma Dream Machine is ideal for users who prioritize ease of use, a established ecosystem, and are willing to pay a monthly subscription fee for a proprietary solution. Wan2.1 is suitable for users who value data control, customization, and cost savings, and are comfortable with the potential complexity of an open-source solution.
+Luma Dream Machine is ideal for users who prioritize ease of use, integration with other Luma products, and are willing to compromise on data privacy. It is suitable for those who value the convenience of a proprietary platform and are not concerned about the costs associated with it.
+<p>Wan2.1 is perfect for users who value data privacy, customization, and cost savings. It is ideal for those who are comfortable with self-hosting, have the technical expertise to set it up, and want to be in control of their data processing.</p>
 <h2>Migration / Getting Started</h2>
-To switch from Luma Dream Machine to Wan2.1, follow these steps: 
+To switch from Luma Dream Machine to Wan2.1, follow these steps:
 <ol>
-<li>Export your data from Luma Dream Machine to ensure a smooth transition.</li>
-<li>Set up a local environment for Wan2.1, which may require technical expertise.</li>
-<li>Configure Wan2.1 to meet your specific needs, leveraging its open-source community and customization options.</li>
+<li>Export your data from Luma Dream Machine, if possible, to ensure a smooth transition.</li>
+<li>Set up a local server or self-hosting environment for Wan2.1, which may require technical expertise.</li>
+<li>Configure Wan2.1 to meet your specific needs, taking advantage of its customization options and community-driven development.</li>
 </ol>
   </div>
 

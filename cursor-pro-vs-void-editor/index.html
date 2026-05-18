@@ -6,7 +6,7 @@
   <title>Cursor Pro vs Void (2026) — Free AI Alternative</title>
   <meta name="description" content="Is Void a good free alternative to Cursor Pro? Detailed comparison of pricing ($20/month vs Free), privacy, setup difficulty, and migration guide. Save money by switching to a free AI tool.">
   <meta name="keywords" content="Cursor Pro free alternative, Void vs Cursor Pro, free Cursor Pro alternative, Cursor Pro open source">
-  <link rel="canonical" href="https://aiopentec.github.io/ai-tool-alternative-finder/cursor-pro-vs-void-editor/">
+  <link rel="canonical" href="https://aiopentec.github.io/ai-tool-alternative-finder/cursor-pro-vs-void-editor/" />
   <meta name="robots" content="index, follow">
   <meta property="og:type" content="article">
   <meta property="og:title" content="Cursor Pro vs Void (2026)">
@@ -22,7 +22,7 @@
     "@type": "Article",
     "headline": "Cursor Pro vs Void (2026)",
     "description": "Is Void a good free alternative to Cursor Pro? Detailed comparison of pricing ($20/month vs Free), privacy, setup difficulty, and migration guide. Save money by switching to a free AI tool.",
-    "dateModified": "2026-05-18T10:07:38Z",
+    "dateModified": "2026-05-18T11:45:31Z",
     "publisher": {"@type": "Organization", "name": "AI Tool Alternative Finder", "url": "https://aiopentec.github.io/ai-tool-alternative-finder"}
   }
   </script>
@@ -196,7 +196,172 @@
       .card { padding: 1.25rem; }
       .verdict-grid { grid-template-columns: 1fr; }
     }
-</style>
+
+    /* ══════════════════════════════════════════════════════
+       DARK MODE — full override
+       All variables remapped; no hardcoded colours below this line
+       survive into dark contexts unpatched.
+    ══════════════════════════════════════════════════════ */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:           #0f0e0c;
+        --surface:      #1a1916;
+        --surface-2:    #222019;
+        --border:       #2e2b26;
+        --text:         #e8e4dd;
+        --muted:        #9a9288;
+        --accent:       #60a5fa;
+        --accent-light: #1e2d45;
+        --header:       #0a0908;
+        --header-text:  #e8e4dd;
+
+        /* Status palettes — light enough on dark bg */
+        --red-light:    #2d1515;  --red-border:    #5c2020;
+        --amber-light:  #2d2010;  --amber-border:  #5c4020;
+        --green-light:  #0f2d18;  --green-border:  #1a5c30;
+        --purple-light: #1e1535;  --purple-border: #3d2a70;
+        --teal-light:   #0d2626;  --teal-border:   #1a4d4d;
+      }
+
+      /* ── Prose ── */
+      body { color: var(--text); background: var(--bg); }
+      p, li { color: #c8c4bc; }
+      h1, h2, h3, h4 { color: var(--text); }
+      a { color: var(--accent); }
+      a:hover { color: #93c5fd; }
+
+      /* ── Cards & surfaces ── */
+      .card, .card-sm,
+      .comparison-card, .tool-card,
+      .alt-card, .feature-card { background: #1a1916; border-color: var(--border); }
+
+      /* ── Tables ── */
+      table th { background: #222019; color: var(--muted); }
+      table td { color: #c8c4bc; border-color: var(--border); }
+      table tr:hover td { background: #222019; }
+      .data-table th { background: var(--surface-2); }
+      .data-table td { color: #c8c4bc; }
+
+      /* ── Filter / category buttons ── */
+      .filter-btn, .category-btn {
+        background: #222019;
+        color: var(--muted);
+        border-color: var(--border);
+      }
+      .filter-btn.active, .category-btn.active {
+        background: #1e2d45;
+        color: var(--accent);
+        border-color: #3b82f6;
+      }
+
+      /* ── Tool comparison hero ── */
+      .vs-box, .comparison-hero, .tool-vs-wrapper {
+        background: #1a1916;
+        border-color: var(--border);
+      }
+      .tool-name, .tool-price { color: var(--text); }
+      .tool-badge-free { background: var(--green-light); color: #86efac; }
+      .tool-badge-paid { background: var(--red-light);   color: #fca5a5; }
+
+      /* ── Verdict / callout boxes ── */
+      .verdict-approve, .verdict-switch {
+        background: var(--green-light);
+        border-color: var(--green-border);
+        color: #86efac;
+      }
+      .verdict-reject, .verdict-stay {
+        background: var(--red-light);
+        border-color: var(--red-border);
+        color: #fca5a5;
+      }
+      .verdict-caution, .verdict-warning {
+        background: var(--amber-light);
+        border-color: var(--amber-border);
+        color: #fcd34d;
+      }
+      .callout       { background: var(--accent-light); color: #93c5fd; border-left-color: var(--accent); }
+      .callout-amber { background: var(--amber-light);  color: #fcd34d; }
+      .callout-green { background: var(--green-light);  color: #86efac; }
+
+      /* ── Badges ── */
+      .badge-red    { background: var(--red-light);    color: #fca5a5; border-color: var(--red-border); }
+      .badge-amber  { background: var(--amber-light);  color: #fcd34d; border-color: var(--amber-border); }
+      .badge-green  { background: var(--green-light);  color: #86efac; border-color: var(--green-border); }
+      .badge-blue   { background: var(--accent-light); color: #93c5fd; border-color: #3b82f6; }
+      .badge-purple { background: var(--purple-light); color: #c4b5fd; border-color: var(--purple-border); }
+      .badge-teal   { background: var(--teal-light);   color: #5eead4; border-color: var(--teal-border); }
+
+      /* ── Inline code ── */
+      code {
+        background: #2a2825;
+        border-color: #3a3630;
+        color: #e8e4dd;
+      }
+      pre {
+        background: #0a0908;
+        border-color: rgba(255,255,255,0.05);
+        color: #e5e1d8;
+      }
+
+      /* ── Nav / TOC bar ── */
+      .toc-bar, nav {
+        background: #1a1916;
+        border-color: var(--border);
+      }
+      .toc-link, .nav-link { color: var(--muted); }
+      .toc-link:hover, .nav-link:hover { color: var(--accent); }
+
+      /* ── Difficulty dots ── */
+      .difficulty-dot-filled  { background: var(--accent); }
+      .difficulty-dot-empty   { background: var(--border); }
+
+      /* ── Pros / cons lists ── */
+      .pros-list li::before { color: #86efac; }
+      .cons-list li::before { color: #fca5a5; }
+
+      /* ── Pricing table highlight ── */
+      .price-free  { color: #86efac; }
+      .price-paid  { color: #fca5a5; }
+      .price-highlight { background: #0f2d18; }
+
+      /* ── Related comparisons ── */
+      .related-link, .related-card {
+        background: #1a1916;
+        border-color: var(--border);
+        color: var(--text);
+      }
+      .related-link:hover, .related-card:hover {
+        border-color: var(--accent);
+        background: #1e2d45;
+      }
+
+      /* ── Email / newsletter widget ── */
+      .newsletter-box, .email-widget {
+        background: #1a1916;
+        border-color: var(--border);
+      }
+      .newsletter-box input[type="email"] {
+        background: #222019;
+        border-color: var(--border);
+        color: var(--text);
+      }
+
+      /* ── Footer ── */
+      footer { background: var(--header); }
+      footer p, footer a { color: rgba(255,255,255,0.35); }
+      footer a:hover { color: rgba(255,255,255,0.65); }
+
+      /* ── Homepage hero ── */
+      .hero-sub { color: rgba(232,228,221,0.55); }
+      .hero-stat-num { color: var(--accent); }
+      .hero-stat-label { color: rgba(255,255,255,0.35); }
+
+      /* ── Scrollbar (webkit) ── */
+      ::-webkit-scrollbar { background: #1a1916; }
+      ::-webkit-scrollbar-thumb { background: #2e2b26; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #3a3630; }
+    }
+    </style>
 </head>
 <body>
 
@@ -279,14 +444,14 @@
 
   <div class="card">
     <h2>Overview</h2>
-Cursor Pro and Void are AI-powered tools designed to enhance user productivity. Both tools offer unique features, but individuals and teams seeking cost-effective, private, and locally processed solutions may benefit from switching between them. Developers, writers, and businesses with specific requirements can choose the tool that best fits their needs.
+Cursor Pro and Void are AI-powered tools designed to enhance productivity and workflow. Both tools cater to individuals and teams seeking to streamline their tasks, with benefits including increased efficiency and accuracy. Switching between these tools can be beneficial for users seeking specific features, such as cost savings or enhanced privacy.
 <h2>Key Differences</h2>
 <ul>
-<li>Cost: Cursor Pro requires a monthly subscription, while Void is free to use.</li>
-<li>Privacy/Data: Cursor Pro sends data to vendor servers, whereas Void offers local processing and self-hosting options.</li>
-<li>Setup Difficulty: Cursor Pro has a more streamlined setup process, while Void requires more technical expertise for self-hosting.</li>
-<li>Quality Parity: Both tools offer high-quality performance, but Void's features may not be as polished as Cursor Pro's.</li>
-<li>Ecosystem: Cursor Pro integrates with a wider range of third-party tools and services, while Void's ecosystem is more limited.</li>
+<li>Cost: Cursor Pro offers a paid subscription model, while Void is free and open-source.</li>
+<li>Privacy/Data: Cursor Pro sends data to vendor servers, whereas Void allows for local processing and self-hosting.</li>
+<li>Setup Difficulty: Cursor Pro has a more straightforward setup process, while Void requires more technical expertise for self-hosting.</li>
+<li>Quality Parity: Both tools offer high-quality performance, but Void's open-source nature allows for community-driven development and customization.</li>
+<li>Ecosystem: Cursor Pro integrates with a wider range of third-party tools and services, while Void's ecosystem is more limited but growing.</li>
 </ul>
 <h2>Pricing Comparison</h2>
 <div class="table-wrapper"><table>
@@ -295,31 +460,31 @@ Cursor Pro and Void are AI-powered tools designed to enhance user productivity. 
 <tr><td>License</td><td>Proprietary</td><td>Apache 2.0</td></tr>
 <tr><td>Data privacy</td><td>Sent to vendor servers</td><td>Local / self-hosted</td></tr>
 <tr><td>Cost at 10 users/month</td><td>$200/month</td><td>$0/month</td></tr>
-<tr><td>Cost at 100 users/month</td><td>$2000/month</td><td>$0/month</td></tr>
+<tr><td>Cost at 100 users/month</td><td>$2,000/month</td><td>$0/month</td></tr>
 </tbody></table></div>
 <h2>Pros and Cons</h2>
-Cursor Pro:
+<h3>Cursor Pro</h3>
 <ul>
-<li>Offers a wide range of integrations with third-party tools</li>
-<li>Has a more polished user interface</li>
-<li>Provides dedicated customer support</li>
-<li>Can be more expensive for large teams</li>
+<li>Offers a user-friendly interface and easy setup process</li>
+<li>Integrates with a wide range of third-party tools and services</li>
+<li>Provides high-quality performance and support</li>
+<li>Can be expensive for large teams or enterprises</li>
 </ul>
-Void:
+<h3>Void</h3>
 <ul>
-<li>Is completely free to use</li>
-<li>Offers local processing and self-hosting options</li>
-<li>Has a flexible and customizable architecture</li>
-<li>Requires more technical expertise to set up and use</li>
+<li>Free and open-source, reducing costs for users</li>
+<li>Allows for local processing and self-hosting, enhancing privacy and security</li>
+<li>Offers community-driven development and customization</li>
+<li>Requires more technical expertise for setup and maintenance</li>
 </ul>
 <h2>When to Choose Each</h2>
-Cursor Pro is ideal for individuals and teams who value ease of use, a wide range of integrations, and dedicated customer support, and are willing to pay a premium for these features. Void is suitable for developers, writers, and businesses who prioritize data privacy, cost savings, and customizability, and have the technical expertise to set up and maintain a self-hosted solution.
+Cursor Pro is ideal for individuals and teams who prioritize ease of use, integration with existing tools, and high-quality support, and are willing to pay a premium for these features. Void, on the other hand, is suited for users who value privacy, security, and cost savings, and are comfortable with more technical setup and maintenance requirements.
 <h2>Migration / Getting Started</h2>
 To switch from Cursor Pro to Void, follow these steps:
 <ol>
-<li>Export your data from Cursor Pro to ensure a smooth transition.</li>
-<li>Set up a self-hosted Void instance on your local machine or server.</li>
-<li>Configure Void to meet your specific needs, using its customizable architecture and flexible settings.</li>
+<li>Export your data from Cursor Pro, if possible, to ensure a smooth transition.</li>
+<li>Set up a self-hosted Void instance, either on your local machine or a remote server, to maintain control over your data.</li>
+<li>Configure Void to meet your specific needs, taking advantage of its customization options and community-driven development.</li>
 </ol>
   </div>
 
