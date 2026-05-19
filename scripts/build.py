@@ -860,7 +860,6 @@ def build_comparison_page(comp: Dict, all_comps: List[Dict], updated: str, site_
     }}
     [data-theme="dark"] .card[style] h2 {{ color: #58a6ff !important; }}
     [data-theme="dark"] .card[style] p  {{ color: #8b949e !important; }}
-    [data-theme="dark"] .card[style] a  {{ color: #58a6ff !important; }}
     [data-theme="dark"] .verdict-switch {{
       background: #1b2d1f !important;
       border-color: #238636 !important;
