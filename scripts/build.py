@@ -365,12 +365,12 @@ SHARED_CSS = """
     [data-theme="dark"] thead th { background: #0c2d4a; }
     [data-theme="dark"] tbody tr:nth-child(even) td { background: #1c2128; }
     [data-theme="dark"] tbody td { border-bottom-color: #30363d; color: #c9d1d9; }
-    [data-theme="dark"] .verdict-box { background: var(--card); border-color: var(--blue); }
+    [data-theme="dark"] .verdict-box { background: var(--card) !important; border-color: var(--blue) !important; }
     [data-theme="dark"] .related-link { background: #1c2128; border-color: #30363d; color: var(--blue); }
     [data-theme="dark"] .related-link:hover { background: var(--blue); color: #0d1117; }
     [data-theme="dark"] footer { background: #0d1117; border-top-color: #30363d; color: #8b949e; }
     [data-theme="dark"] nav { background: #010409; }
-    [data-theme="dark"] .difficulty-card { background: var(--card); border-color: var(--border); }
+    [data-theme="dark"] .difficulty-card { background: var(--card) !important; border-color: var(--border) !important; }
     [data-theme="dark"] .t-strip { background: #0f2318; border-left-color: #3fb950; }
     [data-theme="dark"] .t-green { background: #152820; color: #3fb950; }
     [data-theme="dark"] .t-amber { background: #2d2010; color: #d4a843; }
@@ -852,6 +852,15 @@ def build_comparison_page(comp: Dict, all_comps: List[Dict], updated: str, site_
       ::-webkit-scrollbar-thumb {{ background: #2e2b26; border-radius: 4px; }}
       ::-webkit-scrollbar-thumb:hover {{ background: #3a3630; }}
     }}
+    
+    /* Override inline style= attributes on cards in dark mode */
+    [data-theme="dark"] .card[style] {
+      background: var(--card) !important;
+      border-color: var(--border) !important;
+    }
+    [data-theme="dark"] .card[style] h2 { color: #58a6ff !important; }
+    [data-theme="dark"] .card[style] p  { color: #8b949e !important; }
+    [data-theme="dark"] .card[style] a  { color: #58a6ff !important; }
     </style>
 </head>
 <body>
