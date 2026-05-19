@@ -351,36 +351,36 @@ SHARED_CSS = """
       --text: #1A202C; --text-muted: #718096;
       --border: #E2E8F0; --shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    [data-theme="dark"] {
+    [data-theme="dark"] {{
       --bg: #0d1117; --card: #161b22; --border: #30363d;
       --text: #e6edf3; --text-muted: #8b949e;
       --blue: #58a6ff; --blue-light: #79b8ff; --blue-bg: #0c2d4a;
       --green: #3fb950; --green-bg: #1b2d1f;
-    }
-    [data-theme="dark"] body { background: var(--bg); color: var(--text); }
-    [data-theme="dark"] .hero { background: linear-gradient(135deg, #0a1628 0%, #0d2440 100%); }
-    [data-theme="dark"] .card { background: var(--card); border-color: var(--border); }
-    [data-theme="dark"] .card h2 { color: var(--blue); border-bottom-color: var(--blue-bg); }
-    [data-theme="dark"] .card p, [data-theme="dark"] .card li { color: #c9d1d9; }
-    [data-theme="dark"] thead th { background: #0c2d4a; }
-    [data-theme="dark"] tbody tr:nth-child(even) td { background: #1c2128; }
-    [data-theme="dark"] tbody td { border-bottom-color: #30363d; color: #c9d1d9; }
-    [data-theme="dark"] .verdict-box { background: var(--card) !important; border-color: var(--blue) !important; }
-    [data-theme="dark"] .related-link { background: #1c2128; border-color: #30363d; color: var(--blue); }
-    [data-theme="dark"] .related-link:hover { background: var(--blue); color: #0d1117; }
-    [data-theme="dark"] footer { background: #0d1117; border-top-color: #30363d; color: #8b949e; }
-    [data-theme="dark"] nav { background: #010409; }
-    [data-theme="dark"] .difficulty-card { background: var(--card) !important; border-color: var(--border) !important; }
-    [data-theme="dark"] .t-strip { background: #0f2318; border-left-color: #3fb950; }
-    [data-theme="dark"] .t-green { background: #152820; color: #3fb950; }
-    [data-theme="dark"] .t-amber { background: #2d2010; color: #d4a843; }
-    [data-theme="dark"] .t-body { color: #8b949e; }
-    [data-theme="dark"] .t-link { color: #58a6ff; }
-    [data-theme="dark"] .qb-tool { background: var(--card) !important; border-color: var(--border) !important; }
-    [data-theme="dark"] .qb-tool.paid { background: #2d1616 !important; border-color: #5a2020 !important; }
-    [data-theme="dark"] .qb-tool.paid .name { color: #f47067 !important; }
-    [data-theme="dark"] .qb-tool.free { background: #152820 !important; border-color: #1f4a2a !important; }
-    [data-theme="dark"] .qb-tool.free .name { color: #3fb950 !important; }
+    }}
+    [data-theme="dark"] body {{ background: var(--bg); color: var(--text); }}
+    [data-theme="dark"] .hero {{ background: linear-gradient(135deg, #0a1628 0%, #0d2440 100%); }}
+    [data-theme="dark"] .card {{ background: var(--card); border-color: var(--border); }}
+    [data-theme="dark"] .card h2 {{ color: var(--blue); border-bottom-color: var(--blue-bg); }}
+    [data-theme="dark"] .card p, [data-theme="dark"] .card li {{ color: #c9d1d9; }}
+    [data-theme="dark"] thead th {{ background: #0c2d4a; }}
+    [data-theme="dark"] tbody tr:nth-child(even) td {{ background: #1c2128; }}
+    [data-theme="dark"] tbody td {{ border-bottom-color: #30363d; color: #c9d1d9; }}
+    [data-theme="dark"] .verdict-box {{ background: var(--card) !important; border-color: var(--blue) !important; }}
+    [data-theme="dark"] .related-link {{ background: #1c2128; border-color: #30363d; color: var(--blue); }}
+    [data-theme="dark"] .related-link:hover {{ background: var(--blue); color: #0d1117; }}
+    [data-theme="dark"] footer {{ background: #0d1117; border-top-color: #30363d; color: #8b949e; }}
+    [data-theme="dark"] nav {{ background: #010409; }}
+    [data-theme="dark"] .difficulty-card {{ background: var(--card) !important; border-color: var(--border) !important; }}
+    [data-theme="dark"] .t-strip {{ background: #0f2318; border-left-color: #3fb950; }}
+    [data-theme="dark"] .t-green {{ background: #152820; color: #3fb950; }}
+    [data-theme="dark"] .t-amber {{ background: #2d2010; color: #d4a843; }}
+    [data-theme="dark"] .t-body {{ color: #8b949e; }}
+    [data-theme="dark"] .t-link {{ color: #58a6ff; }}
+    [data-theme="dark"] .qb-tool {{ background: var(--card) !important; border-color: var(--border) !important; }}
+    [data-theme="dark"] .qb-tool.paid {{ background: #2d1616 !important; border-color: #5a2020 !important; }}
+    [data-theme="dark"] .qb-tool.paid .name {{ color: #f47067 !important; }}
+    [data-theme="dark"] .qb-tool.free {{ background: #152820 !important; border-color: #1f4a2a !important; }}
+    [data-theme="dark"] .qb-tool.free .name {{ color: #3fb950 !important; }}
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
     a { color: var(--blue); }
@@ -854,13 +854,13 @@ def build_comparison_page(comp: Dict, all_comps: List[Dict], updated: str, site_
     }}
     
     /* Override inline style= attributes on cards in dark mode */
-    [data-theme="dark"] .card[style] {
+    [data-theme="dark"] .card[style] {{
       background: var(--card) !important;
       border-color: var(--border) !important;
-    }
-    [data-theme="dark"] .card[style] h2 { color: #58a6ff !important; }
-    [data-theme="dark"] .card[style] p  { color: #8b949e !important; }
-    [data-theme="dark"] .card[style] a  { color: #58a6ff !important; }
+    }}
+    [data-theme="dark"] .card[style] h2 {{ color: #58a6ff !important; }}
+    [data-theme="dark"] .card[style] p  {{ color: #8b949e !important; }}
+    [data-theme="dark"] .card[style] a  {{ color: #58a6ff !important; }}
     </style>
 </head>
 <body>
@@ -1836,8 +1836,11 @@ def build_site(cache_dir: str = '.cache/comparisons', site_dir: str = 'site'):
     logger.info(f'  📄 {len(all_comps)} comparisons loaded')
 
     # Build comparison pages
+    total = len(all_comps)
     for i, comp in enumerate(all_comps):
         try:
+            if not comp.get("date"):
+                comp["date"] = get_publish_date(i, total)
             build_comparison_page(comp, all_comps, updated, str(site))
             if i % 10 == 0:
                 logger.info(f'  📄 Built {i+1}/{len(all_comps)} comparison pages')
