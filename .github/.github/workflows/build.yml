@@ -40,6 +40,9 @@ jobs:
           echo "=== Sitemap preview ==="
           head -20 sitemap.xml
 
+      - name: Create CNAME file
+        run: echo "aitoolalternatives.com" > CNAME
+
       - name: Commit and push generated files
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
