@@ -117,7 +117,7 @@ jobs:
 
       - name: Build site
         env:
-          SITE_BASE_URL: 'https://aiopentec.github.io/ai-tool-alternative-finder'
+          SITE_BASE_URL: 'https://aitoolalternatives.com'
           GA_ID: ${{ secrets.GA_ID }}
           ADSENSE_ID: ${{ secrets.ADSENSE_ID }}
         run: |
@@ -140,3 +140,4 @@ jobs:
           user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_message: 'chore: auto-rebuild site [${{ github.run_number }}]'
           force_orphan: false
+          cname: aitoolalternatives.com
