@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 # ── CANONICAL BASE — change ONLY this line when switching to a custom domain ──
-SITE_URL = "https://aiopentec.github.io/ai-tool-alternative-finder"
+SITE_URL = "https://aitoolalternatives.com"
 # When you get a custom domain (e.g. https://aitoolalternatives.com), update
 # SITE_URL above and run: Force regenerate: true in GitHub Actions.
 # Every canonical tag, OG URL, and sitemap entry is generated from this value.
