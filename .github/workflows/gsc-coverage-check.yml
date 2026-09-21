@@ -1,0 +1,41 @@
+name: GSC Coverage Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Optional: only inspect first N URLs (leave blank for all)"
+        required: false
+        default: ""
+
+jobs:
+  coverage-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install requests google-auth google-api-python-client
+
+      - name: Run coverage check
+        env:
+          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python scripts/gsc_coverage_buckets.py \
+            --site-url "https://aitoolalternatives.com/" \
+            --sitemap-url "https://aitoolalternatives.com/sitemap.xml" \
+            --output gsc_coverage_report.json \
+            ${{ github.event.inputs.limit != '' && format('--limit {0}', github.event.inputs.limit) || '' }}
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gsc-coverage-report
+          path: gsc_coverage_report.json
