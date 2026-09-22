@@ -164,23 +164,55 @@ def word_count(markdown: str) -> int:
 
 
 # ── Main generation function ─────────────────────────────────────────────────
+_groq_consecutive_429s = 0
+_GROQ_429_CIRCUIT_BREAKER = 3  # after this many consecutive 429s, stop calling Groq for the rest of this run
+
+
 def generate_alternatives_content(paid_key: str, paid: Dict, free_keys: List[str], tools: Dict) -> Dict:
+    global _groq_consecutive_429s
     free_names = [tools.get(fk, {}).get('name', fk) for fk in free_keys]
     prompt = build_prompt(paid, free_names)
 
     content = None
     provider = None
 
-    for attempt in range(2):  # two Groq attempts with backoff, same pattern as generate.py
+    if _groq_consecutive_429s < _GROQ_429_CIRCUIT_BREAKER:
         try:
             content = generate_with_groq(prompt)
             provider = 'groq'
+            _groq_consecutive_429s = 0
             logger.info('    ✅ Generated with Groq')
-            break
+        except requests.exceptions.HTTPError as e:
+            if e.response is not None and e.response.status_code == 429:
+                _groq_consecutive_429s += 1
+                logger.warning('    ⚠️  Groq rate-limited (429) — skipping retry, falling to Gemini')
+                if _groq_consecutive_429s >= _GROQ_429_CIRCUIT_BREAKER:
+                    logger.warning(
+                        f'    🛑 Groq rate-limited {_GROQ_429_CIRCUIT_BREAKER}x in a row — '
+                        f'disabling Groq for the rest of this run'
+                    )
+            else:
+                logger.warning(f'    ⚠️  Groq failed ({type(e).__name__}): {e}')
+                time.sleep(10)
+                try:
+                    content = generate_with_groq(prompt)
+                    provider = 'groq'
+                    _groq_consecutive_429s = 0
+                    logger.info('    ✅ Generated with Groq (retry)')
+                except Exception as e2:
+                    logger.warning(f'    ⚠️  Groq retry failed ({type(e2).__name__}): {e2}')
         except Exception as e:
             logger.warning(f'    ⚠️  Groq failed ({type(e).__name__}): {e}')
-            if attempt == 0:
-                time.sleep(60)
+            time.sleep(10)
+            try:
+                content = generate_with_groq(prompt)
+                provider = 'groq'
+                _groq_consecutive_429s = 0
+                logger.info('    ✅ Generated with Groq (retry)')
+            except Exception as e2:
+                logger.warning(f'    ⚠️  Groq retry failed ({type(e2).__name__}): {e2}')
+    else:
+        logger.info('    ⏭️  Skipping Groq this item (circuit breaker tripped earlier this run)')
 
     if content is None:
         try:

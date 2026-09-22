@@ -356,7 +356,12 @@ def generate_with_template(paid_key: str, free_key: str, paid: Dict, free: Dict)
 
 
 # ── Main generation function ───────────────────────────────────────────────────
+_groq_consecutive_429s = 0
+_GROQ_429_CIRCUIT_BREAKER = 3  # after this many consecutive 429s, stop calling Groq for the rest of this run
+
+
 def generate_comparison(paid_key: str, free_key: str, tools: Dict) -> Dict:
+    global _groq_consecutive_429s
     paid = tools[paid_key]
     free = tools[free_key]
     prompt = build_prompt(paid, free)
@@ -364,16 +369,47 @@ def generate_comparison(paid_key: str, free_key: str, tools: Dict) -> Dict:
     content = None
     provider = None
 
-    for attempt in range(2):  # two Groq attempts with backoff
+    if _groq_consecutive_429s < _GROQ_429_CIRCUIT_BREAKER:
         try:
             content = generate_with_groq(prompt)
             provider = 'groq'
+            _groq_consecutive_429s = 0
             logger.info('    ✅ Generated with Groq')
-            break
+        except requests.exceptions.HTTPError as e:
+            if e.response is not None and e.response.status_code == 429:
+                # Rate-limited / quota exhausted — retrying 60s later almost never
+                # helps (a free-tier daily cap doesn't reset in a minute), so skip
+                # straight to Gemini instead of burning a minute per page.
+                _groq_consecutive_429s += 1
+                logger.warning(f'    ⚠️  Groq rate-limited (429) — skipping retry, falling to Gemini')
+                if _groq_consecutive_429s >= _GROQ_429_CIRCUIT_BREAKER:
+                    logger.warning(
+                        f'    🛑 Groq rate-limited {_GROQ_429_CIRCUIT_BREAKER}x in a row — '
+                        f'disabling Groq for the rest of this run'
+                    )
+            else:
+                logger.warning(f'    ⚠️  Groq failed ({type(e).__name__}): {e}')
+                time.sleep(10)
+                try:
+                    content = generate_with_groq(prompt)
+                    provider = 'groq'
+                    _groq_consecutive_429s = 0
+                    logger.info('    ✅ Generated with Groq (retry)')
+                except Exception as e2:
+                    logger.warning(f'    ⚠️  Groq retry failed ({type(e2).__name__}): {e2}')
         except Exception as e:
+            # Non-HTTP errors (timeout, connection error) — a short retry can help.
             logger.warning(f'    ⚠️  Groq failed ({type(e).__name__}): {e}')
-            if attempt == 0:
-                time.sleep(60)  # Groq rate-limit window
+            time.sleep(10)
+            try:
+                content = generate_with_groq(prompt)
+                provider = 'groq'
+                _groq_consecutive_429s = 0
+                logger.info('    ✅ Generated with Groq (retry)')
+            except Exception as e2:
+                logger.warning(f'    ⚠️  Groq retry failed ({type(e2).__name__}): {e2}')
+    else:
+        logger.info('    ⏭️  Skipping Groq this pair (circuit breaker tripped earlier this run)')
 
     if content is None:
         try:
