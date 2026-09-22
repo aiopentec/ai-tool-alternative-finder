@@ -183,37 +183,71 @@ FREE_RATINGS = {
 }
 
 STAY_IF_CONTENT = {
-    'open-webui':             "you need GPT-4o's frontier reasoning, real-time web browsing, or the ChatGPT plugin ecosystem, and don't want to manage any local infrastructure.",
-    'ollama':                 "you need cloud reliability, mobile apps, or access to proprietary frontier models like GPT-4o or Claude 3.5 Sonnet from any device.",
-    'jan-ai':                 "you need real-time web access, the latest frontier models, or seamless mobile access from your phone.",
-    'lm-studio':              "you need cloud sync across devices, access to GPT-4o-level reasoning, or a fully managed service with zero local setup.",
-    'anything-llm':           "your use case requires the absolute best summarisation quality with GPT-4o, or you cannot run any local server infrastructure.",
+    'open-webui':             "you need the widest frontier-model selection, real-time web browsing, or a mature plugin ecosystem, and don't want to manage any local infrastructure.",
+    'ollama':                 "you need cloud reliability, mobile apps, or access to the very latest proprietary frontier models from any device.",
+    'jan-ai':                 "you need real-time web access, the newest frontier models, or seamless mobile access from your phone.",
+    'lm-studio':              "you need cloud sync across devices, top-tier frontier-model reasoning, or a fully managed service with zero local setup.",
+    'anything-llm':           "your use case requires the absolute best available summarisation quality, or you cannot run any local server infrastructure.",
     'privateGPT':             "you need real-time information retrieval or a fully managed RAG solution with vendor SLA support.",
-    'morphic':                "you need Perplexity Pro's answer quality, real-time news access, or the polished mobile app experience.",
-    'farfalle':               "you want Perplexity's seamless interface, mobile apps, and the highest quality AI answers without any self-hosting.",
-    'continue-dev':           "your team relies heavily on GitHub Copilot's deep GitHub integration, ghost text predictions, and the Copilot Chat sidebar.",
-    'codeium':                "you need GitHub Copilot's tight GitHub PR review integration, enterprise SSO, and Copilot's brand recognition.",
-    'tabby':                  "you want zero infrastructure to manage, the best model quality for complex completions, and GitHub's enterprise compliance.",
-    'void-editor':            "you need Cursor's most advanced agentic features, the polished AI diff view, or deep Claude integration within the editor.",
+    'morphic':                "you need the polish of a leading commercial answer engine, real-time news access, or a refined mobile app experience.",
+    'farfalle':               "you want a fully polished commercial interface, mobile apps, and top-tier AI answer quality without any self-hosting.",
+    'continue-dev':           "your team relies heavily on a leading commercial assistant's deep repo integration, ghost-text predictions, and built-in chat sidebar.",
+    'codeium':                "you need a leading commercial assistant's tight PR-review integration, enterprise SSO, and brand-name support.",
+    'tabby':                  "you want zero infrastructure to manage, the strongest model quality for complex completions, and enterprise-grade compliance.",
+    'void-editor':            "you need a commercial editor's most advanced agentic features, the most polished AI diff view, or the deepest frontier-model integration.",
     'aider':                  "you prefer a fully GUI-based workflow, need real-time collaboration features, or want the most advanced AI-driven code editing UI.",
-    'stable-diffusion-webui': "you don't have a GPU, want Midjourney's consistent aesthetic without any setup, or rely on Midjourney's active community for inspiration.",
-    'comfyui':                "you want Midjourney's ease of use and consistent artistic quality without needing to understand node-based pipelines.",
-    'fooocus':                "you need Midjourney's community feed, upscaling features, and consistently cutting-edge model updates without any local setup.",
-    'invokeai':               "you want zero setup and Midjourney's signature aesthetic without managing models, checkpoints, or GPU hardware.",
-    'bark':                   "you need ElevenLabs' widest language support, real-time streaming, voice design studio, and a polished browser-based workflow.",
-    'coqui-tts':              "you need 32-language support, real-time voice generation, or ElevenLabs' professional dubbing and voice library features.",
+    'stable-diffusion-webui': "you don't have a GPU, want a fully managed tool's consistent aesthetic without any setup, or rely on an active built-in community for inspiration.",
+    'comfyui':                "you want a fully managed tool's ease of use and consistent artistic quality without needing to understand node-based pipelines.",
+    'fooocus':                "you need a fully managed tool's community feed, upscaling features, and consistently cutting-edge model updates without any local setup.",
+    'invokeai':               "you want zero setup and a fully managed tool's signature aesthetic without managing models, checkpoints, or GPU hardware.",
+    'bark':                   "you need the widest language support, real-time streaming, a voice design studio, and a polished browser-based workflow.",
+    'coqui-tts':              "you need broad multi-language support, real-time voice generation, or professional dubbing and voice-library features.",
     'piper-tts':              "you need high-quality emotional voice synthesis, voice cloning from short clips, or a browser-based interface with no local setup.",
-    'kokoro':                 "you need ElevenLabs' extensive voice library, multilingual support beyond English, or a managed API with guaranteed uptime.",
-    'whisper':                "you need Descript's full transcript-based audio editing workflow, filler word removal, and collaborative podcast production.",
-    'whisperx':               "you need Otter.ai's real-time transcription, meeting bot integrations with Zoom/Teams, and automated meeting summary features.",
-    'libreTranslate':         "you need DeepL's best-in-class translation quality for high-stakes content like legal or marketing documents.",
-    'argos-translate':        "translation quality is mission-critical and you need DeepL's formality controls and native document translation features.",
-    'languagetool':           "you need Grammarly's full AI rewrites, tone detection, plagiarism checking, and the polished browser extension experience.",
-    'localai':                "you need GPT-4o's frontier reasoning, have latency-sensitive production workloads, or don't have GPU hardware for local inference.",
-    'litellm':                "you need the absolute latest OpenAI models, don't want to manage proxy infrastructure, or need ultra-low latency cloud inference.",
-    'stable-video':           "you need Runway's professional film-quality generation, advanced camera controls, and a polished browser-based workflow.",
-    'wan-video':              "you need Luma Dream Machine's ease of use, the most realistic motion quality, and a fully managed service with no GPU required.",
-    'appflowy-ai':            "you need Notion AI's deepest database integrations, the most polished AI editing experience, or real-time collaboration with clients.",
+    'kokoro':                 "you need an extensive commercial voice library, multilingual support beyond English, or a managed API with guaranteed uptime.",
+    'whisper':                "you need a full transcript-based audio editing workflow, filler-word removal, and collaborative podcast production.",
+    'whisperx':               "you need real-time meeting transcription, meeting-bot integrations with Zoom/Teams, and automated meeting summaries.",
+    'libreTranslate':         "you need best-in-class translation quality for high-stakes content like legal or marketing documents.",
+    'argos-translate':        "translation quality is mission-critical and you need formality controls and native document translation features.",
+    'languagetool':           "you need full AI rewrites, tone detection, plagiarism checking, and a polished browser extension experience.",
+    'localai':                "you need the widest frontier-model access, have latency-sensitive production workloads, or don't have GPU hardware for local inference.",
+    'litellm':                "you need the absolute latest commercial models, don't want to manage proxy infrastructure, or need ultra-low-latency cloud inference.",
+    'stable-video':           "you need a commercial tool's professional film-quality generation, advanced camera controls, and a polished browser-based workflow.",
+    'wan-video':              "you need a fully managed service's ease of use, the most realistic motion quality, and zero GPU requirement.",
+    'appflowy-ai':            "you need a commercial tool's deepest database integrations, the most polished AI editing experience, or real-time collaboration with clients.",
+}
+
+SWITCH_IF_CONTENT = {
+    'open-webui':             "you want a self-hosted chat interface in front of any model you choose, full conversation privacy, and no per-seat billing.",
+    'ollama':                 "you want models running entirely on your own machine, offline access, and zero recurring cost.",
+    'jan-ai':                 "you want a native desktop app for local models with no account, no cloud dependency, and no subscription.",
+    'lm-studio':              "you want a polished local model runner with GPU acceleration and no data ever leaving your machine.",
+    'anything-llm':           "you want a self-hosted knowledge base and chat layer over your own documents with no per-seat cost.",
+    'privateGPT':             "you need documents queried entirely offline with zero data leaving your infrastructure.",
+    'morphic':                "you want a self-hosted answer engine with full control over sources and no subscription.",
+    'farfalle':               "you want an open-source, self-hosted search assistant with no usage caps.",
+    'continue-dev':           "you want an open-source AI coding assistant you can point at any model, with no per-seat licensing.",
+    'codeium':                "you want a free coding assistant with generous usage limits and broad IDE support.",
+    'tabby':                  "you want a fully self-hosted code-completion server with your own model and no data leaving your network.",
+    'void-editor':            "you want an open-source AI code editor with no subscription and full control over which model powers it.",
+    'aider':                  "you want a terminal-native AI pair programmer that works with any model and costs nothing beyond API usage.",
+    'stable-diffusion-webui': "privacy matters, your usage volume is high, or you want to eliminate monthly image-generation subscription costs entirely.",
+    'comfyui':                "you want full node-based control over the image pipeline and unlimited local generation at no per-image cost.",
+    'fooocus':                "you want a simple, opinionated local image generator with no subscription and no usage caps.",
+    'invokeai':               "you want a polished local image-generation UI with unlimited free generations.",
+    'bark':                   "you want fully offline, open-source text-to-speech with no per-character billing.",
+    'coqui-tts':              "you want self-hosted, multi-language voice synthesis with no subscription.",
+    'piper-tts':              "you need fast, lightweight, fully offline text-to-speech with no cloud dependency.",
+    'kokoro':                 "you want high-quality local voice synthesis with no per-use cost.",
+    'whisper':                "you want fully offline, unlimited audio transcription with no per-minute billing.",
+    'whisperx':               "you want offline transcription with word-level timestamps and no subscription.",
+    'libreTranslate':         "you want a self-hosted translation API with no per-character cost or usage caps.",
+    'argos-translate':        "you want fully offline translation with no API costs or rate limits.",
+    'languagetool':           "you want a self-hosted grammar and style checker with no subscription.",
+    'localai':                "you want an OpenAI-compatible API running entirely on your own infrastructure at no per-token cost.",
+    'litellm':                "you want a self-hosted proxy that unifies multiple model providers with no vendor lock-in.",
+    'stable-video':           "you want unlimited local video generation with full control over the pipeline.",
+    'wan-video':              "you want a free, self-hosted video generation model with no per-clip cost.",
+    'appflowy-ai':            "you want a self-hosted, open-source workspace with AI features and no per-seat subscription.",
 }
 
 
@@ -541,10 +575,11 @@ def build_difficulty_card(free_key: str, free_name: str) -> str:
 
 def build_verdict_box(paid_name: str, free_name: str, free_key: str) -> str:
     stay_text = STAY_IF_CONTENT.get(free_key, f"you need {paid_name}'s specific enterprise features, SLA support, or the most polished managed experience.")
-    switch_text = (
-        f"{free_name} is the right move if privacy matters, your usage volume is high, "
-        f"or you want to eliminate monthly AI subscription costs entirely."
+    switch_reason = SWITCH_IF_CONTENT.get(
+        free_key,
+        "privacy matters, your usage volume is high, or you want to eliminate monthly AI subscription costs entirely."
     )
+    switch_text = f"{free_name} is the right move if {switch_reason}"
     return f"""<div class="verdict-box">
   <div class="verdict-header">🤖 Quick Verdict</div>
   <div class="verdict-grid">
