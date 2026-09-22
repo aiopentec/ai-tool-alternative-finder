@@ -4,8 +4,8 @@ generate.py — AI Tool Alternative Finder
 Generates comparison content for paid AI tools vs free alternatives.
 
 Provider waterfall:
-  1. Groq  (llama-3.3-70b-versatile) — free, fast
-  2. Gemini Flash                      — free, reliable fallback
+  1. Groq  (openai/gpt-oss-120b) — free, fast
+  2. Gemini Flash (gemini-flash-lite-latest) — free, reliable fallback
   3. Template engine                   — always works, no API needed
 
 Usage:
@@ -38,17 +38,46 @@ def load_data() -> Tuple[Dict, List]:
 def build_prompt(paid: Dict, free: Dict) -> str:
     month = datetime.now().strftime('%B %Y')
     return f"""You are a technical writer producing a comparison page for an AI tools directory.
+This page will sit alongside ~150 other comparison pages on the same site, so it
+must read as genuinely written about THESE TWO TOOLS SPECIFICALLY, not as a
+generic template with names swapped in. A reader who has seen another page on
+this site should not feel like they're reading the same article twice.
 
 # {paid['name']} vs {free['name']}
+
+Context you can draw on (use specifics from this, don't just restate it):
+- {paid['name']}: {paid.get('description', '')} — {paid.get('pricing', 'N/A')}, by {paid.get('company', 'N/A')}
+- {free['name']}: {free.get('description', '')} — {free.get('pricing', 'Free')}
+
+Hard rules — breaking any of these makes the page unusable:
+1. Do NOT open with any variant of "{paid['name']} and {free['name']} are AI tools
+   designed to assist with various tasks" or "...cater to different user needs" or
+   any other sentence that could be copy-pasted onto a different tool pair by
+   swapping two names. Open with one concrete, specific fact about what makes
+   THIS pair's trade-off distinctive (a real feature, a real limitation, a real
+   number).
+2. Every section must include at least one concrete specific: an actual number
+   (price, language count, model size, response time, star count), a named
+   feature, or a named real-world use case. Vague phrases like "seamless
+   integration," "cutting-edge," "wide range of features," or "enhanced privacy"
+   on their own — with no specific attached — are not acceptable.
+3. Vary your sentence openings and structure from what a generic template would
+   produce. Do not use the same opening clause pattern ("X requires... while Y
+   offers...") for more than one bullet in a row.
+4. If a "difference" you'd normally list doesn't actually meaningfully apply to
+   this specific pair, skip it rather than padding with a generic version of it.
 
 Write the following sections in Markdown. Be objective, factual, and concise.
 Focus on: cost savings, privacy, local processing, and practical switching advice.
 
 ## Overview
-2-3 sentences. What each tool does and who benefits from switching.
+2-3 sentences. Lead with the single most concrete, specific point of contrast
+for this exact pair (see rule 1) — not a generic category description.
 
 ## Key Differences
-Exactly 5 bullet points covering: cost, privacy/data, setup difficulty, quality parity, and ecosystem.
+Up to 5 bullet points covering: cost, privacy/data, setup difficulty, quality
+parity, and ecosystem — but only include ones with a real, specific difference
+for this pair (rule 4). Each bullet needs a concrete detail (rule 2).
 
 ## Pricing Comparison
 | Aspect | {paid['name']} | {free['name']} |
@@ -60,13 +89,18 @@ Exactly 5 bullet points covering: cost, privacy/data, setup difficulty, quality 
 | Cost at 100 users/month | Calculate | Calculate |
 
 ## Pros and Cons
-Bullet pros and cons for EACH tool (4 bullets each).
+Bullet pros and cons for EACH tool (4 bullets each). Each bullet should name a
+specific feature or limitation, not a generic category ("good support" is not
+acceptable; "24/7 live chat support with <1hr response SLA" is).
 
 ## When to Choose Each
-One focused paragraph per tool describing the ideal user.
+One focused paragraph per tool. Ground it in a specific type of user or
+real-world scenario (e.g. "a solo indie developer shipping a side project" or
+"a compliance team handling regulated customer data"), not a generic persona.
 
 ## Migration / Getting Started
-3 concrete steps to switch from {paid['name']} to {free['name']}.
+3 concrete, tool-specific steps to switch from {paid['name']} to {free['name']} —
+actual commands, actual URLs, actual settings where relevant.
 
 ---
 *Verified {month}. Check {paid.get('website','')} and {free.get('website','')} for latest pricing.*
@@ -83,7 +117,7 @@ def generate_with_groq(prompt: str) -> str:
         'https://api.groq.com/openai/v1/chat/completions',
         headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
         json={
-            'model': 'llama-3.3-70b-versatile',
+            'model': 'openai/gpt-oss-120b',
             'messages': [{'role': 'user', 'content': prompt}],
             'max_tokens': 1400,
             'temperature': 0.6,
@@ -100,7 +134,7 @@ def generate_with_gemini(prompt: str) -> str:
     if not api_key:
         raise ValueError('GEMINI_API_KEY not set')
     r = requests.post(
-        f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}',
+        f'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={api_key}',
         headers={'Content-Type': 'application/json'},
         json={'contents': [{'parts': [{'text': prompt}]}]},
         timeout=45,
